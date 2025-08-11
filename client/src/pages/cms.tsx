@@ -141,6 +141,70 @@ export default function CMS() {
     });
   };
 
+  const handleBulkUpload = async (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+
+    const deckName = form.getValues('name') || 'Uploaded Deck';
+    
+    try {
+      // First create the deck
+      const deckData = {
+        name: deckName,
+        description: form.getValues('description') || 'Bulk uploaded deck',
+        theme: form.getValues('theme') || 'classic',
+        isCustom: true,
+      };
+
+      const deckResponse = await fetch("/api/decks", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(deckData),
+      });
+      
+      if (!deckResponse.ok) throw new Error("Failed to create deck");
+      const deck = await deckResponse.json();
+
+      // Then upload all the card files
+      const formData = new FormData();
+      Array.from(files).forEach((file) => {
+        formData.append("cards", file);
+      });
+      formData.append("deckId", deck.id);
+
+      const uploadResponse = await fetch("/api/upload/bulk-deck", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!uploadResponse.ok) throw new Error("Failed to upload files");
+      const result = await uploadResponse.json();
+
+      toast({
+        title: "Bulk Upload Successful!",
+        description: `Successfully uploaded ${files.length} cards and created ${result.cards.length} tarot cards.`,
+      });
+
+      // Update progress
+      setUploadProgress(prev => ({
+        ...prev,
+        majorArcana: 22,
+        minorArcana: 56,
+        cardBack: true,
+      }));
+
+      // Reset form and redirect
+      form.reset();
+      queryClient.invalidateQueries({ queryKey: ["/api/decks"] });
+
+    } catch (error) {
+      toast({
+        title: "Upload Failed",
+        description: "Failed to upload deck. Please check file names and try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const suits = [
     { id: "wands", name: "Wands", count: 14 },
     { id: "cups", name: "Cups", count: 14 },
@@ -247,6 +311,80 @@ export default function CMS() {
 
       {/* Card Upload Sections */}
       <div className="space-y-8">
+
+        {/* Bulk Upload Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.05 }}
+          className="bg-gradient-to-r from-mystic-gold/10 to-mystic-600/10 backdrop-blur-md rounded-xl p-8 border-2 border-mystic-gold/40"
+        >
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h3 className="font-cinzel text-xl font-semibold text-mystic-gold">Bulk Upload Complete Deck</h3>
+              <p className="text-sm text-mystic-gold-light mt-2">Perfect for uploading your Rider-Waite Smith collection!</p>
+            </div>
+            <div className="text-right">
+              <div className="text-2xl font-bold text-mystic-gold">78</div>
+              <div className="text-xs text-mystic-gold-light">Total Cards</div>
+            </div>
+          </div>
+
+          <div className="bg-mystic-900/40 rounded-lg p-6 mb-6">
+            <h4 className="font-semibold text-mystic-gold mb-3">File Naming Guide</h4>
+            <div className="grid md:grid-cols-2 gap-4 text-sm text-mystic-gold-light">
+              <div>
+                <p className="font-medium mb-2">Major Arcana Examples:</p>
+                <ul className="space-y-1 text-xs font-mono bg-mystic-800/50 p-3 rounded">
+                  <li>• the-fool.png</li>
+                  <li>• the-magician.png</li>
+                  <li>• the-high-priestess.png</li>
+                  <li>• death.png</li>
+                  <li>• the-world.png</li>
+                </ul>
+              </div>
+              <div>
+                <p className="font-medium mb-2">Minor Arcana Examples:</p>
+                <ul className="space-y-1 text-xs font-mono bg-mystic-800/50 p-3 rounded">
+                  <li>• ace-of-wands.png</li>
+                  <li>• two-of-cups.png</li>
+                  <li>• king-of-swords.png</li>
+                  <li>• ten-of-pentacles.png</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          
+          <div 
+            className="border-2 border-dashed border-mystic-gold/50 rounded-xl p-16 text-center hover:border-mystic-gold transition-colors cursor-pointer bg-mystic-900/20"
+            onClick={() => document.getElementById('bulk-upload')?.click()}
+          >
+            <Upload className="text-mystic-gold text-6xl mb-6 mx-auto animate-bounce" />
+            <h4 className="font-cinzel text-2xl font-semibold text-mystic-gold mb-4">Drop All 78 Cards Here</h4>
+            <p className="text-mystic-gold-light text-lg mb-4">Select all your Rider-Waite PNG files at once</p>
+            <div className="flex items-center justify-center gap-4 text-sm text-mystic-gold-light/70">
+              <span>PNG • JPG • WebP</span>
+              <span>•</span>
+              <span>Max 5MB each</span>
+              <span>•</span>
+              <span>78 cards max</span>
+            </div>
+            <input
+              type="file"
+              id="bulk-upload"
+              multiple
+              accept="image/*"
+              className="hidden"
+              onChange={(e) => handleBulkUpload(e.target.files)}
+            />
+          </div>
+
+          <div className="mt-6 p-4 bg-mystic-800/30 rounded-lg">
+            <p className="text-xs text-mystic-gold-light">
+              <strong>Tip:</strong> The system will automatically recognize card names from your filenames and create the complete deck structure for you!
+            </p>
+          </div>
+        </motion.div>
         
         {/* Major Arcana Upload */}
         <motion.div

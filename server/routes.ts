@@ -6,6 +6,75 @@ import path from "path";
 import { storage } from "./storage";
 import { insertDeckSchema, insertTarotCardSchema, insertReadingSchema } from "@shared/schema";
 
+// Helper function to parse card information from filename
+function parseCardFromFilename(filename: string) {
+  // Major Arcana mapping
+  const majorArcana = {
+    'the fool': { name: 'The Fool', number: 0 },
+    'the magician': { name: 'The Magician', number: 1 },
+    'the high priestess': { name: 'The High Priestess', number: 2 },
+    'the empress': { name: 'The Empress', number: 3 },
+    'the emperor': { name: 'The Emperor', number: 4 },
+    'the hierophant': { name: 'The Hierophant', number: 5 },
+    'the lovers': { name: 'The Lovers', number: 6 },
+    'the chariot': { name: 'The Chariot', number: 7 },
+    'strength': { name: 'Strength', number: 8 },
+    'the hermit': { name: 'The Hermit', number: 9 },
+    'wheel of fortune': { name: 'Wheel of Fortune', number: 10 },
+    'justice': { name: 'Justice', number: 11 },
+    'the hanged man': { name: 'The Hanged Man', number: 12 },
+    'death': { name: 'Death', number: 13 },
+    'temperance': { name: 'Temperance', number: 14 },
+    'the devil': { name: 'The Devil', number: 15 },
+    'the tower': { name: 'The Tower', number: 16 },
+    'the star': { name: 'The Star', number: 17 },
+    'the moon': { name: 'The Moon', number: 18 },
+    'the sun': { name: 'The Sun', number: 19 },
+    'judgement': { name: 'Judgement', number: 20 },
+    'the world': { name: 'The World', number: 21 }
+  };
+
+  const normalized = filename.toLowerCase().replace(/[-_]/g, ' ').trim();
+
+  // Check if it's a Major Arcana card
+  if (majorArcana[normalized]) {
+    return {
+      name: majorArcana[normalized].name,
+      arcana: 'major',
+      suit: null,
+      number: majorArcana[normalized].number
+    };
+  }
+
+  // Parse Minor Arcana (e.g., "ace of wands", "two of cups", "king of swords")
+  const minorPattern = /^(ace|two|three|four|five|six|seven|eight|nine|ten|page|knight|queen|king)\s+of\s+(wands|cups|swords|pentacles)$/;
+  const minorMatch = normalized.match(minorPattern);
+  
+  if (minorMatch) {
+    const [, rank, suit] = minorMatch;
+    const rankNumbers: Record<string, number> = {
+      'ace': 1, 'two': 2, 'three': 3, 'four': 4, 'five': 5,
+      'six': 6, 'seven': 7, 'eight': 8, 'nine': 9, 'ten': 10,
+      'page': 11, 'knight': 12, 'queen': 13, 'king': 14
+    };
+
+    return {
+      name: `${rank.charAt(0).toUpperCase() + rank.slice(1)} of ${suit.charAt(0).toUpperCase() + suit.slice(1)}`,
+      arcana: 'minor',
+      suit: suit,
+      number: rankNumbers[rank]
+    };
+  }
+
+  // If no pattern matches, return a generic card
+  return {
+    name: filename.replace(/[-_]/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
+    arcana: 'major', // default to major
+    suit: null,
+    number: null
+  };
+}
+
 // Configure multer for file uploads
 const upload = multer({
   dest: 'uploads/',
@@ -175,6 +244,63 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(201).json(uploadResults);
     } catch (error) {
       res.status(500).json({ message: "Failed to upload files" });
+    }
+  });
+
+  // Bulk upload route for complete deck
+  app.post("/api/upload/bulk-deck", upload.array('cards', 78), async (req, res) => {
+    try {
+      const files = req.files as Express.Multer.File[];
+      const { deckId } = req.body;
+
+      if (!files || files.length === 0) {
+        return res.status(400).json({ message: "No files uploaded" });
+      }
+
+      const uploadResults = [];
+      const createdCards = [];
+      
+      for (const file of files) {
+        // Extract card name from filename (remove .png/.jpg extension)
+        const cardName = file.originalname.replace(/\.(png|jpg|jpeg|webp)$/i, '');
+        
+        // Create upload record
+        const uploadData = {
+          deckId,
+          filename: file.filename,
+          originalName: file.originalname,
+          fileUrl: `/uploads/${file.filename}`,
+          cardType: 'bulk_upload',
+        };
+        const upload = await storage.createUpload(uploadData);
+        uploadResults.push(upload);
+
+        // Create card record based on filename
+        const cardData = parseCardFromFilename(cardName);
+        if (cardData) {
+          const card = await storage.createCard({
+            deckId,
+            name: cardData.name,
+            arcana: cardData.arcana,
+            suit: cardData.suit,
+            number: cardData.number,
+            imageUrl: upload.fileUrl,
+            uprightMeaning: null,
+            reversedMeaning: null,
+            keywords: null,
+          });
+          createdCards.push(card);
+        }
+      }
+
+      res.status(201).json({ 
+        uploads: uploadResults, 
+        cards: createdCards,
+        message: `Successfully uploaded ${files.length} cards` 
+      });
+    } catch (error) {
+      console.error('Bulk upload error:', error);
+      res.status(500).json({ message: "Failed to upload deck files" });
     }
   });
 

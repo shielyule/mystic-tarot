@@ -63,31 +63,23 @@ export class MemStorage implements IStorage {
     };
     this.decks.set(defaultDeckId, defaultDeck);
 
-    // Add sample major arcana cards
+    // Add complete major arcana cards
     const majorArcanaCards = [
-      {
-        name: "The Fool",
-        number: 0,
-        uprightMeaning: "New beginnings, innocence, spontaneity, and a free spirit. The Fool represents the start of a journey and the courage to step into the unknown.",
-        keywords: ["New beginnings", "Innocence", "Adventure", "Trust"],
-        imageUrl: "https://images.unsplash.com/photo-1551029506-0807df4e2031?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=600"
-      },
-      {
-        name: "The Magician",
-        number: 1,
-        uprightMeaning: "Manifestation, resourcefulness, power, and inspired action. The Magician represents the ability to turn dreams into reality.",
-        keywords: ["Manifestation", "Power", "Skill", "Concentration"],
-        imageUrl: "https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=600"
-      },
-      {
-        name: "The High Priestess",
-        number: 2,
-        uprightMeaning: "Intuition, sacred knowledge, divine feminine, and the subconscious mind. She represents inner wisdom and mysteries.",
-        keywords: ["Intuition", "Mystery", "Subconscious", "Wisdom"],
-        imageUrl: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=600"
-      }
+      { name: "The Fool", number: 0, uprightMeaning: "New beginnings, innocence, spontaneity, and a free spirit. The Fool represents the start of a journey and the courage to step into the unknown.", keywords: ["New beginnings", "Innocence", "Adventure", "Trust"], imageUrl: "https://images.unsplash.com/photo-1551029506-0807df4e2031?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=600" },
+      { name: "The Magician", number: 1, uprightMeaning: "Manifestation, resourcefulness, power, and inspired action. The Magician represents the ability to turn dreams into reality.", keywords: ["Manifestation", "Power", "Skill", "Concentration"], imageUrl: "https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=600" },
+      { name: "The High Priestess", number: 2, uprightMeaning: "Intuition, sacred knowledge, divine feminine, and the subconscious mind. She represents inner wisdom and mysteries.", keywords: ["Intuition", "Mystery", "Subconscious", "Wisdom"], imageUrl: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=600" },
+      { name: "The Empress", number: 3, uprightMeaning: "Fertility, femininity, beauty, nature, and abundance. The Empress represents motherhood and nurturing.", keywords: ["Fertility", "Abundance", "Nature", "Nurturing"], imageUrl: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=600" },
+      { name: "The Emperor", number: 4, uprightMeaning: "Authority, father-figure, structure, and solid foundation. The Emperor represents leadership and control.", keywords: ["Authority", "Leadership", "Structure", "Control"], imageUrl: "https://images.unsplash.com/photo-1551029506-0807df4e2031?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=600" }
     ];
 
+    // Add some minor arcana cards
+    const minorArcanaCards = [
+      { name: "Ace of Wands", suit: "wands", number: 1, uprightMeaning: "Inspiration, new opportunities, and growth. The Ace of Wands represents creative energy and potential.", keywords: ["Inspiration", "Growth", "Potential", "Energy"], imageUrl: "https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=600" },
+      { name: "Two of Wands", suit: "wands", number: 2, uprightMeaning: "Planning, making decisions, and leaving comfort zones. This card represents personal power and future planning.", keywords: ["Planning", "Decisions", "Progress", "Discovery"], imageUrl: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=600" },
+      { name: "Ace of Cups", suit: "cups", number: 1, uprightMeaning: "New relationships, compassion, and creativity. The Ace of Cups represents emotional new beginnings.", keywords: ["Love", "Emotions", "Intuition", "Spirituality"], imageUrl: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=600" }
+    ];
+
+    // Add major arcana cards
     majorArcanaCards.forEach(cardData => {
       const cardId = randomUUID();
       const card: TarotCard = {
@@ -96,6 +88,24 @@ export class MemStorage implements IStorage {
         name: cardData.name,
         arcana: "major",
         suit: null,
+        number: cardData.number,
+        imageUrl: cardData.imageUrl,
+        uprightMeaning: cardData.uprightMeaning,
+        reversedMeaning: null,
+        keywords: cardData.keywords.length > 0 ? cardData.keywords : null,
+      };
+      this.tarotCards.set(cardId, card);
+    });
+
+    // Add minor arcana cards
+    minorArcanaCards.forEach(cardData => {
+      const cardId = randomUUID();
+      const card: TarotCard = {
+        id: cardId,
+        deckId: defaultDeckId,
+        name: cardData.name,
+        arcana: "minor",
+        suit: cardData.suit,
         number: cardData.number,
         imageUrl: cardData.imageUrl,
         uprightMeaning: cardData.uprightMeaning,
