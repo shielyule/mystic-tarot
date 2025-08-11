@@ -1,0 +1,195 @@
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600&family=Inter:wght@300;400;500;600&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: hsl(0 0% 100%);
+  --foreground: hsl(210 25% 7.8431%);
+  --card: hsl(180 6.6667% 97.0588%);
+  --card-foreground: hsl(210 25% 7.8431%);
+  --popover: hsl(0 0% 100%);
+  --popover-foreground: hsl(210 25% 7.8431%);
+  --primary: hsl(203.8863 88.2845% 53.1373%);
+  --primary-foreground: hsl(0 0% 100%);
+  --secondary: hsl(210 25% 7.8431%);
+  --secondary-foreground: hsl(0 0% 100%);
+  --muted: hsl(240 1.9608% 90%);
+  --muted-foreground: hsl(210 25% 7.8431%);
+  --accent: hsl(211.5789 51.3514% 92.7451%);
+  --accent-foreground: hsl(203.8863 88.2845% 53.1373%);
+  --destructive: hsl(356.3033 90.5579% 54.3137%);
+  --destructive-foreground: hsl(0 0% 100%);
+  --border: hsl(201.4286 30.4348% 90.9804%);
+  --input: hsl(200 23.0769% 97.4510%);
+  --ring: hsl(202.8169 89.1213% 53.1373%);
+  --chart-1: hsl(203.8863 88.2845% 53.1373%);
+  --chart-2: hsl(159.7826 100% 36.0784%);
+  --chart-3: hsl(42.0290 92.8251% 56.2745%);
+  --chart-4: hsl(147.1429 78.5047% 41.9608%);
+  --chart-5: hsl(341.4894 75.2000% 50.9804%);
+  --sidebar: hsl(180 6.6667% 97.0588%);
+  --sidebar-foreground: hsl(210 25% 7.8431%);
+  --sidebar-primary: hsl(203.8863 88.2845% 53.1373%);
+  --sidebar-primary-foreground: hsl(0 0% 100%);
+  --sidebar-accent: hsl(211.5789 51.3514% 92.7451%);
+  --sidebar-accent-foreground: hsl(203.8863 88.2845% 53.1373%);
+  --sidebar-border: hsl(205.0000 25.0000% 90.5882%);
+  --sidebar-ring: hsl(202.8169 89.1213% 53.1373%);
+
+  /* Mystic Theme Colors */
+  --mystic-900: hsl(240 23% 9%);
+  --mystic-800: hsl(240 21% 15%);
+  --mystic-700: hsl(240 27% 20%);
+  --mystic-600: hsl(258 39% 41%);
+  --mystic-500: hsl(258 57% 58%);
+  --mystic-gold: hsl(45 91% 58%);
+  --mystic-gold-light: hsl(45 71% 91%);
+
+  --font-cinzel: 'Cinzel', serif;
+  --font-inter: 'Inter', sans-serif;
+  --font-crimson: 'Crimson Text', serif;
+  --radius: 1.3rem;
+}
+
+.dark {
+  --background: hsl(240 23% 9%);
+  --foreground: hsl(45 71% 91%);
+  --card: hsl(240 21% 15%);
+  --card-foreground: hsl(45 71% 91%);
+  --popover: hsl(240 23% 9%);
+  --popover-foreground: hsl(45 71% 91%);
+  --primary: hsl(45 91% 58%);
+  --primary-foreground: hsl(240 23% 9%);
+  --secondary: hsl(240 27% 20%);
+  --secondary-foreground: hsl(45 71% 91%);
+  --muted: hsl(240 21% 15%);
+  --muted-foreground: hsl(240 5% 65%);
+  --accent: hsl(258 39% 41%);
+  --accent-foreground: hsl(45 91% 58%);
+  --destructive: hsl(356.3033 90.5579% 54.3137%);
+  --destructive-foreground: hsl(0 0% 100%);
+  --border: hsl(240 27% 20%);
+  --input: hsl(240 21% 15%);
+  --ring: hsl(45 91% 58%);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply font-inter antialiased;
+    background: linear-gradient(135deg, hsl(var(--mystic-900)) 0%, hsl(var(--mystic-800)) 50%, hsl(var(--mystic-600)) 100%);
+    color: hsl(var(--mystic-gold-light));
+    min-height: 100vh;
+  }
+}
+
+@layer components {
+  .perspective-1000 {
+    perspective: 1000px;
+  }
+
+  .card-face {
+    backface-visibility: hidden;
+    transition: transform 0.6s;
+  }
+
+  .card-flipped {
+    transform: rotateY(180deg);
+  }
+
+  .mystical-glow {
+    box-shadow: 0 0 20px hsl(var(--mystic-gold) / 0.3);
+  }
+
+  .text-mystic-gold {
+    color: hsl(var(--mystic-gold));
+  }
+
+  .text-mystic-gold-light {
+    color: hsl(var(--mystic-gold-light));
+  }
+
+  .bg-mystic-900 {
+    background-color: hsl(var(--mystic-900));
+  }
+
+  .bg-mystic-800 {
+    background-color: hsl(var(--mystic-800));
+  }
+
+  .bg-mystic-700 {
+    background-color: hsl(var(--mystic-700));
+  }
+
+  .bg-mystic-600 {
+    background-color: hsl(var(--mystic-600));
+  }
+
+  .bg-mystic-500 {
+    background-color: hsl(var(--mystic-500));
+  }
+
+  .bg-mystic-gold {
+    background-color: hsl(var(--mystic-gold));
+  }
+
+  .border-mystic-gold {
+    border-color: hsl(var(--mystic-gold));
+  }
+
+  .hover\:border-mystic-gold:hover {
+    border-color: hsl(var(--mystic-gold));
+  }
+}
+
+@layer utilities {
+  .font-cinzel {
+    font-family: var(--font-cinzel);
+  }
+
+  .font-crimson {
+    font-family: var(--font-crimson);
+  }
+}
+
+/* Animation Keyframes */
+@keyframes cardFlip {
+  0% { transform: rotateY(0deg); }
+  50% { transform: rotateY(90deg); }
+  100% { transform: rotateY(0deg); }
+}
+
+@keyframes mysticalGlow {
+  0%, 100% { opacity: 0.5; transform: scale(1); }
+  50% { opacity: 0.8; transform: scale(1.05); }
+}
+
+@keyframes fadeIn {
+  0% { opacity: 0; transform: translateY(20px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideUp {
+  0% { transform: translateY(100%); }
+  100% { transform: translateY(0); }
+}
+
+.animate-card-flip {
+  animation: cardFlip 0.6s ease-in-out;
+}
+
+.animate-mystical-glow {
+  animation: mysticalGlow 3s ease-in-out infinite;
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-in;
+}
+
+.animate-slide-up {
+  animation: slideUp 0.4s ease-out;
+}
