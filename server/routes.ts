@@ -8,33 +8,59 @@ import { insertDeckSchema, insertTarotCardSchema, insertReadingSchema } from "@s
 
 // Helper function to parse card information from filename
 function parseCardFromFilename(filename: string) {
-  // Major Arcana mapping
+  // Remove file extension and clean the filename
+  const cleanName = filename.replace(/\.(png|jpg|jpeg|webp)$/i, '').toLowerCase().trim();
+  
+  // Handle card back
+  if (cleanName.includes('cardback') || cleanName.includes('card_back') || cleanName.includes('back')) {
+    return { isCardBack: true };
+  }
+
+  // Major Arcana mapping - handle various naming conventions
   const majorArcana = {
-    'the fool': { name: 'The Fool', number: 0 },
-    'the magician': { name: 'The Magician', number: 1 },
-    'the high priestess': { name: 'The High Priestess', number: 2 },
-    'the empress': { name: 'The Empress', number: 3 },
-    'the emperor': { name: 'The Emperor', number: 4 },
-    'the hierophant': { name: 'The Hierophant', number: 5 },
-    'the lovers': { name: 'The Lovers', number: 6 },
-    'the chariot': { name: 'The Chariot', number: 7 },
+    'fool': { name: 'The Fool', number: 0 },
+    'the_fool': { name: 'The Fool', number: 0 },
+    'magician': { name: 'The Magician', number: 1 },
+    'the_magician': { name: 'The Magician', number: 1 },
+    'high_priestess': { name: 'The High Priestess', number: 2 },
+    'the_high_priestess': { name: 'The High Priestess', number: 2 },
+    'empress': { name: 'The Empress', number: 3 },
+    'the_empress': { name: 'The Empress', number: 3 },
+    'emperor': { name: 'The Emperor', number: 4 },
+    'the_emperor': { name: 'The Emperor', number: 4 },
+    'hierophant': { name: 'The Hierophant', number: 5 },
+    'the_hierophant': { name: 'The Hierophant', number: 5 },
+    'lovers': { name: 'The Lovers', number: 6 },
+    'the_lovers': { name: 'The Lovers', number: 6 },
+    'chariot': { name: 'The Chariot', number: 7 },
+    'the_chariot': { name: 'The Chariot', number: 7 },
     'strength': { name: 'Strength', number: 8 },
-    'the hermit': { name: 'The Hermit', number: 9 },
-    'wheel of fortune': { name: 'Wheel of Fortune', number: 10 },
+    'hermit': { name: 'The Hermit', number: 9 },
+    'the_hermit': { name: 'The Hermit', number: 9 },
+    'wheel_of_fortune': { name: 'Wheel of Fortune', number: 10 },
+    'wheel': { name: 'Wheel of Fortune', number: 10 },
     'justice': { name: 'Justice', number: 11 },
-    'the hanged man': { name: 'The Hanged Man', number: 12 },
+    'hanged_man': { name: 'The Hanged Man', number: 12 },
+    'the_hanged_man': { name: 'The Hanged Man', number: 12 },
     'death': { name: 'Death', number: 13 },
     'temperance': { name: 'Temperance', number: 14 },
-    'the devil': { name: 'The Devil', number: 15 },
-    'the tower': { name: 'The Tower', number: 16 },
-    'the star': { name: 'The Star', number: 17 },
-    'the moon': { name: 'The Moon', number: 18 },
-    'the sun': { name: 'The Sun', number: 19 },
+    'devil': { name: 'The Devil', number: 15 },
+    'the_devil': { name: 'The Devil', number: 15 },
+    'tower': { name: 'The Tower', number: 16 },
+    'the_tower': { name: 'The Tower', number: 16 },
+    'star': { name: 'The Star', number: 17 },
+    'the_star': { name: 'The Star', number: 17 },
+    'moon': { name: 'The Moon', number: 18 },
+    'the_moon': { name: 'The Moon', number: 18 },
+    'sun': { name: 'The Sun', number: 19 },
+    'the_sun': { name: 'The Sun', number: 19 },
     'judgement': { name: 'Judgement', number: 20 },
-    'the world': { name: 'The World', number: 21 }
+    'judgment': { name: 'Judgement', number: 20 },
+    'world': { name: 'The World', number: 21 },
+    'the_world': { name: 'The World', number: 21 }
   };
 
-  const normalized = filename.toLowerCase().replace(/[-_]/g, ' ').trim();
+  const normalized = cleanName.replace(/[-\s]/g, '_');
 
   // Check if it's a Major Arcana card
   if (majorArcana[normalized]) {
@@ -42,36 +68,72 @@ function parseCardFromFilename(filename: string) {
       name: majorArcana[normalized].name,
       arcana: 'major',
       suit: null,
-      number: majorArcana[normalized].number
+      number: majorArcana[normalized].number,
+      isCardBack: false
     };
   }
 
-  // Parse Minor Arcana (e.g., "ace of wands", "two of cups", "king of swords")
-  const minorPattern = /^(ace|two|three|four|five|six|seven|eight|nine|ten|page|knight|queen|king)\s+of\s+(wands|cups|swords|pentacles)$/;
+  // Parse Minor Arcana - handle format like "01_cups", "ace_wands", "king_swords"
+  const minorPattern = /^(ace|0?[1-9]|10|page|knight|queen|king)[_\-]?(wands|cups|swords|pentacles)$/;
   const minorMatch = normalized.match(minorPattern);
   
   if (minorMatch) {
     const [, rank, suit] = minorMatch;
+    
     const rankNumbers: Record<string, number> = {
-      'ace': 1, 'two': 2, 'three': 3, 'four': 4, 'five': 5,
-      'six': 6, 'seven': 7, 'eight': 8, 'nine': 9, 'ten': 10,
+      'ace': 1, '01': 1, '1': 1, '02': 2, '2': 2, '03': 3, '3': 3,
+      '04': 4, '4': 4, '05': 5, '5': 5, '06': 6, '6': 6,
+      '07': 7, '7': 7, '08': 8, '8': 8, '09': 9, '9': 9, '10': 10,
       'page': 11, 'knight': 12, 'queen': 13, 'king': 14
     };
 
+    const rankNames: Record<string, string> = {
+      'ace': 'Ace', '01': 'Ace', '1': 'Ace', '02': 'Two', '2': 'Two',
+      '03': 'Three', '3': 'Three', '04': 'Four', '4': 'Four',
+      '05': 'Five', '5': 'Five', '06': 'Six', '6': 'Six',
+      '07': 'Seven', '7': 'Seven', '08': 'Eight', '8': 'Eight',
+      '09': 'Nine', '9': 'Nine', '10': 'Ten',
+      'page': 'Page', 'knight': 'Knight', 'queen': 'Queen', 'king': 'King'
+    };
+
     return {
-      name: `${rank.charAt(0).toUpperCase() + rank.slice(1)} of ${suit.charAt(0).toUpperCase() + suit.slice(1)}`,
+      name: `${rankNames[rank]} of ${suit.charAt(0).toUpperCase() + suit.slice(1)}`,
       arcana: 'minor',
       suit: suit,
-      number: rankNumbers[rank]
+      number: rankNumbers[rank],
+      isCardBack: false
     };
   }
 
-  // If no pattern matches, return a generic card
+  // If no pattern matches, try to determine if it's a suit card by checking the filename
+  const suits = ['wands', 'cups', 'swords', 'pentacles'];
+  for (const suit of suits) {
+    if (normalized.includes(suit)) {
+      // Try to extract number or rank
+      const numMatch = normalized.match(/(\d{1,2})/);
+      if (numMatch) {
+        const num = parseInt(numMatch[1]);
+        if (num >= 1 && num <= 14) {
+          const rankNames = ['', 'Ace', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Page', 'Knight', 'Queen', 'King'];
+          return {
+            name: `${rankNames[num]} of ${suit.charAt(0).toUpperCase() + suit.slice(1)}`,
+            arcana: 'minor',
+            suit: suit,
+            number: num,
+            isCardBack: false
+          };
+        }
+      }
+    }
+  }
+
+  // Default fallback - assume it's a major arcana with a generic name
   return {
-    name: filename.replace(/[-_]/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
-    arcana: 'major', // default to major
+    name: cleanName.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' '),
+    arcana: 'major',
     suit: null,
-    number: null
+    number: null,
+    isCardBack: false
   };
 }
 

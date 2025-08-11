@@ -331,26 +331,54 @@ export default function CMS() {
           </div>
 
           <div className="bg-mystic-900/40 rounded-lg p-6 mb-6">
-            <h4 className="font-semibold text-mystic-gold mb-3">File Naming Guide</h4>
-            <div className="grid md:grid-cols-2 gap-4 text-sm text-mystic-gold-light">
+            <h4 className="font-semibold text-mystic-gold mb-3">📋 Your Collection Structure</h4>
+            <div className="grid md:grid-cols-2 gap-6 text-sm text-mystic-gold-light">
               <div>
-                <p className="font-medium mb-2">Major Arcana Examples:</p>
-                <ul className="space-y-1 text-xs font-mono bg-mystic-800/50 p-3 rounded">
-                  <li>• the-fool.png</li>
-                  <li>• the-magician.png</li>
-                  <li>• the-high-priestess.png</li>
-                  <li>• death.png</li>
-                  <li>• the-world.png</li>
-                </ul>
+                <p className="font-medium mb-3 text-mystic-gold">📂 What You Have:</p>
+                <div className="space-y-2 text-xs bg-mystic-800/50 p-4 rounded">
+                  <div className="flex items-center justify-between">
+                    <span>🎴 Major Arcana (Named Cards)</span>
+                    <span className="text-mystic-gold font-bold">22</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span>🏆 Cups Cards</span>
+                    <span className="text-mystic-gold font-bold">14</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span>⚔️ Swords Cards</span>
+                    <span className="text-mystic-gold font-bold">14</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span>🪄 Wands Cards</span>
+                    <span className="text-mystic-gold font-bold">14</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span>🪙 Pentacles Cards</span>
+                    <span className="text-mystic-gold font-bold">14</span>
+                  </div>
+                  <div className="flex items-center justify-between border-t border-mystic-gold/20 pt-2">
+                    <span>🎭 Card Back Design</span>
+                    <span className="text-mystic-gold font-bold">1</span>
+                  </div>
+                  <div className="flex items-center justify-between border-t border-mystic-gold/30 pt-2 font-bold text-mystic-gold">
+                    <span>Total</span>
+                    <span>79 files</span>
+                  </div>
+                </div>
               </div>
               <div>
-                <p className="font-medium mb-2">Minor Arcana Examples:</p>
-                <ul className="space-y-1 text-xs font-mono bg-mystic-800/50 p-3 rounded">
-                  <li>• ace-of-wands.png</li>
-                  <li>• two-of-cups.png</li>
-                  <li>• king-of-swords.png</li>
-                  <li>• ten-of-pentacles.png</li>
-                </ul>
+                <p className="font-medium mb-3 text-mystic-gold">✨ Auto-Recognition:</p>
+                <div className="space-y-2 text-xs bg-mystic-800/50 p-4 rounded">
+                  <div>✓ Major Arcana by name (fool, magician, etc.)</div>
+                  <div>✓ Minor Arcana by suit folder names</div>
+                  <div>✓ Card numbers (01-14) automatically parsed</div>
+                  <div>✓ Court cards (page, knight, queen, king)</div>
+                  <div>✓ CardBacks file for deck back design</div>
+                </div>
+                <div className="mt-4 p-3 bg-gradient-to-r from-mystic-gold/10 to-mystic-600/10 rounded border border-mystic-gold/30">
+                  <p className="text-xs font-medium text-mystic-gold">🚀 Pro Tip</p>
+                  <p className="text-xs text-mystic-gold-light mt-1">Select all 79 files at once! The system will sort them automatically into the proper structure.</p>
+                </div>
               </div>
             </div>
           </div>
@@ -360,14 +388,19 @@ export default function CMS() {
             onClick={() => document.getElementById('bulk-upload')?.click()}
           >
             <Upload className="text-mystic-gold text-6xl mb-6 mx-auto animate-bounce" />
-            <h4 className="font-cinzel text-2xl font-semibold text-mystic-gold mb-4">Drop All 78 Cards Here</h4>
-            <p className="text-mystic-gold-light text-lg mb-4">Select all your Rider-Waite PNG files at once</p>
+            <h4 className="font-cinzel text-2xl font-semibold text-mystic-gold mb-4">Drop All 79 Files Here</h4>
+            <p className="text-mystic-gold-light text-lg mb-4">Select your complete Rider-Waite collection at once</p>
+            <div className="grid grid-cols-3 gap-4 text-xs text-mystic-gold-light/80 mb-4">
+              <div>22 Named Cards</div>
+              <div>56 Suit Cards</div>
+              <div>1 CardBacks file</div>
+            </div>
             <div className="flex items-center justify-center gap-4 text-sm text-mystic-gold-light/70">
               <span>PNG • JPG • WebP</span>
               <span>•</span>
               <span>Max 5MB each</span>
               <span>•</span>
-              <span>78 cards max</span>
+              <span>79 files total</span>
             </div>
             <input
               type="file"
