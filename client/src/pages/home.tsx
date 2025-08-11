@@ -179,7 +179,7 @@ export default function Home() {
             Recent Readings
           </h3>
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 max-w-4xl mx-auto">
-            {recentReadings.slice(0, 6).map((reading) => {
+            {recentReadings.slice(0, 6).map((reading: any) => {
               // Find the card for this reading
               const card = cards.find((c: any) => c.id === reading.cardId);
               if (!card) return null;
