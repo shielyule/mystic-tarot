@@ -1,0 +1,321 @@
+{
+  "project": {
+    "name": "Mystic Tarot",
+    "version": "1.0.0",
+    "description": "A mystical digital tarot card reading application with custom deck creation and AI-powered interpretations",
+    "repository": "https://github.com/shielyule/mystic-tarot",
+    "live_url": "https://62904c71-62ba-436d-9d89-805172cc4e20-00-22quczjyljr2x.spock.replit.dev"
+  },
+  
+  "architecture": {
+    "type": "Full-stack monorepo",
+    "pattern": "Client-Server with RESTful API",
+    "deployment": "Replit",
+    "runtime": "Node.js v20",
+    "build_system": "Vite"
+  },
+  
+  "tech_stack": {
+    "frontend": {
+      "framework": "React 18",
+      "language": "TypeScript",
+      "routing": "Wouter (lightweight SPA routing)",
+      "state_management": "TanStack Query v5 (React Query)",
+      "forms": "React Hook Form + Zod validation",
+      "animation": "Framer Motion",
+      "styling": "Tailwind CSS + Shadcn/UI components",
+      "ui_primitives": "Radix UI",
+      "icons": "Lucide React",
+      "fonts": {
+        "headings": "Cinzel (mystical elegance)",
+        "body": "Inter (modern readability)",
+        "readings": "Crimson Text (mystical ambiance)"
+      }
+    },
+    "backend": {
+      "framework": "Express.js",
+      "language": "TypeScript",
+      "orm": "Drizzle ORM",
+      "database": "PostgreSQL (Neon serverless)",
+      "file_uploads": "Multer middleware",
+      "session_management": "express-session + connect-pg-simple",
+      "file_storage": "Local filesystem (uploads/ directory)"
+    },
+    "shared": {
+      "validation": "Zod schemas",
+      "type_safety": "TypeScript strict mode",
+      "schema_location": "shared/schema.ts"
+    }
+  },
+  
+  "database_schema": {
+    "decks": {
+      "description": "Container for tarot card collections",
+      "fields": {
+        "id": "uuid PRIMARY KEY",
+        "name": "text NOT NULL",
+        "description": "text",
+        "theme": "text (classic, modern, mystical, etc.)",
+        "isCustom": "boolean DEFAULT false",
+        "cardBackUrl": "text (path to card back image)"
+      },
+      "relationships": ["has_many cards", "has_many uploads"]
+    },
+    "tarotCards": {
+      "description": "Individual tarot cards with meanings",
+      "fields": {
+        "id": "uuid PRIMARY KEY",
+        "deckId": "uuid FOREIGN KEY -> decks(id)",
+        "name": "text NOT NULL",
+        "arcana": "text (major | minor)",
+        "suit": "text (wands | cups | swords | pentacles | null)",
+        "number": "integer (0-21 for major, 1-14 for minor)",
+        "imageUrl": "text NOT NULL",
+        "uprightMeaning": "text",
+        "reversedMeaning": "text",
+        "keywords": "text[]"
+      },
+      "indexes": ["deckId", "arcana", "suit"],
+      "relationships": ["belongs_to deck", "has_many readings"]
+    },
+    "readings": {
+      "description": "Historical record of card draws and interpretations",
+      "fields": {
+        "id": "uuid PRIMARY KEY",
+        "cardId": "uuid FOREIGN KEY -> tarotCards(id)",
+        "interpretation": "text (AI-generated or manual)",
+        "timestamp": "timestamp DEFAULT now()"
+      },
+      "relationships": ["belongs_to card"]
+    },
+    "customUploads": {
+      "description": "User-uploaded images for custom deck creation",
+      "fields": {
+        "id": "uuid PRIMARY KEY",
+        "deckId": "uuid FOREIGN KEY -> decks(id)",
+        "filename": "text NOT NULL",
+        "originalName": "text NOT NULL",
+        "fileUrl": "text NOT NULL",
+        "cardType": "text (major | minor | card_back | bulk_upload)"
+      },
+      "relationships": ["belongs_to deck"]
+    }
+  },
+  
+  "features": {
+    "implemented": [
+      {
+        "name": "Multi-Deck System",
+        "description": "Browse and select from multiple tarot decks with different themes",
+        "routes": ["/decks"],
+        "api_endpoints": ["GET /api/decks", "GET /api/decks/:id", "POST /api/decks"]
+      },
+      {
+        "name": "Card Reading",
+        "description": "Draw single cards for mystical readings",
+        "routes": ["/"],
+        "api_endpoints": ["POST /api/readings", "GET /api/readings"],
+        "current_flow": "1. User views deck → 2. Draws one random card → 3. View interpretation → 4. Reading saved to history"
+      },
+      {
+        "name": "Custom Deck CMS",
+        "description": "Content management system for creating custom tarot decks",
+        "routes": ["/upload"],
+        "api_endpoints": ["POST /api/upload/bulk-deck", "POST /api/upload/card-back"],
+        "capabilities": [
+          "Single card upload with categorization",
+          "Bulk deck upload (all 78+ cards at once)",
+          "Intelligent filename parsing",
+          "Card back upload",
+          "Deck metadata management"
+        ]
+      },
+      {
+        "name": "Bulk Upload System",
+        "description": "Upload entire 78-card deck with automatic card recognition",
+        "supported_formats": ["PNG", "JPEG", "WebP"],
+        "max_file_size": "5MB per file",
+        "parsing_logic": {
+          "major_arcana": "Recognizes 'the_fool', 'fool', 'magician', etc. (all 22 cards)",
+          "minor_arcana": "Parses 'ace_cups', '02_wands', 'king_swords', etc.",
+          "card_backs": "Detects 'cardback', 'card_back', 'back'"
+        }
+      },
+      {
+        "name": "Mystical UI/UX",
+        "description": "Dark themed interface with gold accents and animations",
+        "design_elements": {
+          "color_scheme": {
+            "primary": "Deep purple/navy (#1a0b2e, #2d1b4e)",
+            "accent": "Gold (#D4AF37)",
+            "background": "Animated gradient with mystical glow",
+            "text": "White/light gray for contrast"
+          },
+          "animations": [
+            "Card flip animations (Framer Motion)",
+            "Hover glow effects",
+            "Smooth page transitions",
+            "Animated background gradients"
+          ],
+          "components": "Shadcn/UI with Radix primitives for accessibility"
+        }
+      },
+      {
+        "name": "Reading History",
+        "description": "View recent card readings on home page",
+        "display": "Last 6 readings with card preview and interpretation snippet",
+        "storage": "PostgreSQL database via readings table"
+      }
+    ],
+    
+    "pending_improvements": [
+      {
+        "name": "Three-Card Reading System",
+        "status": "planned",
+        "description": "Enhanced reading mechanic with theme input and 3-card spread",
+        "proposed_flow": [
+          "1. User enters theme/question/topic for the reading",
+          "2. Three random cards are selected from chosen deck",
+          "3. Cards displayed face-down in spread formation",
+          "4. User clicks each card to flip and reveal",
+          "5. Theme + 3 cards sent to AI for mystical interpretation",
+          "6. AI generates comprehensive reading based on card meanings + theme",
+          "7. Reading saved to history with timestamp and theme"
+        ]
+      },
+      {
+        "name": "Cloud Storage Integration",
+        "status": "planned",
+        "description": "Move card image storage from local filesystem to cloud storage",
+        "options": [
+          "Replit Object Storage (recommended - built-in, GCS-backed)",
+          "Google Cloud Storage (user's existing infrastructure)",
+          "Firebase Storage (if using Firebase for other features)"
+        ]
+      },
+      {
+        "name": "Enhanced Reading Database",
+        "status": "planned",
+        "description": "Expand readings table to support 3-card spreads and themes",
+        "schema_changes": [
+          "Add 'theme' field to readings table",
+          "Support multiple cards per reading (1-to-many relationship)",
+          "Add 'spread_type' field (single, three-card, celtic-cross, etc.)",
+          "Store AI interpretation alongside card data"
+        ]
+      },
+      {
+        "name": "AI Integration",
+        "status": "planned",
+        "description": "Connect to LLM for generating mystical card interpretations",
+        "potential_providers": [
+          "OpenAI GPT-4",
+          "Anthropic Claude",
+          "Google Gemini"
+        ],
+        "implementation": "Backend endpoint receives theme + cards → calls AI API → returns mystical interpretation"
+      }
+    ]
+  },
+  
+  "file_structure": {
+    "client/": {
+      "src/": {
+        "pages/": ["home.tsx (card drawing)", "decks.tsx (deck browser)", "cms.tsx (upload interface)"],
+        "components/": ["ui/* (shadcn components)", "layout components"],
+        "lib/": ["queryClient.ts (TanStack Query setup)", "utils.ts"],
+        "hooks/": ["use-toast.ts (notification system)"]
+      },
+      "index.css": "Global styles, theme colors, font imports"
+    },
+    "server/": {
+      "index.ts": "Express app entry point",
+      "routes.ts": "API route handlers and file upload logic",
+      "storage.ts": "Database abstraction layer (in-memory for dev)",
+      "vite.ts": "Vite dev server integration",
+      "github.ts": "GitHub API client for repository integration"
+    },
+    "shared/": {
+      "schema.ts": "Drizzle schemas, Zod validators, TypeScript types"
+    },
+    "uploads/": {
+      "description": "Local file storage for uploaded card images",
+      "status": "Will migrate to cloud storage in next phase"
+    }
+  },
+  
+  "api_endpoints": {
+    "decks": {
+      "GET /api/decks": "List all decks",
+      "GET /api/decks/:id": "Get single deck details",
+      "POST /api/decks": "Create new deck",
+      "GET /api/decks/:id/cards": "Get all cards in a deck"
+    },
+    "cards": {
+      "POST /api/cards": "Create individual card"
+    },
+    "readings": {
+      "GET /api/readings": "Get all reading history",
+      "POST /api/readings": "Create new reading (save to history)"
+    },
+    "uploads": {
+      "POST /api/upload/bulk-deck": "Bulk upload entire deck with auto-parsing",
+      "POST /api/upload/card-back": "Upload card back image for deck"
+    }
+  },
+  
+  "development_workflow": {
+    "start": "npm run dev (runs Express + Vite concurrently)",
+    "port": 5000,
+    "hot_reload": "Enabled via Vite",
+    "type_checking": "TypeScript strict mode",
+    "package_manager": "npm",
+    "git_integration": "Connected to GitHub (shielyule/mystic-tarot)"
+  },
+  
+  "deployment": {
+    "platform": "Replit",
+    "auto_deploy": "Available via Replit Deployments",
+    "environment": "Production-ready with PostgreSQL",
+    "custom_domain": "Supported via Replit"
+  },
+  
+  "current_limitations": {
+    "storage": "Card images stored locally (not scalable)",
+    "readings": "Only single-card readings (not 3-card spreads)",
+    "ai_integration": "No AI interpretation yet (manual meanings only)",
+    "authentication": "No user authentication (all users share data)",
+    "reading_history": "No theme/question tracking for readings"
+  },
+  
+  "sample_data": {
+    "decks": [
+      {
+        "name": "Rider-Waite Classic",
+        "description": "Traditional 78-card Rider-Waite-Smith deck",
+        "theme": "classic",
+        "card_count": 78
+      }
+    ]
+  },
+  
+  "dependencies_summary": {
+    "production": [
+      "@tanstack/react-query (server state)",
+      "express (backend server)",
+      "drizzle-orm (database ORM)",
+      "react-hook-form (forms)",
+      "framer-motion (animations)",
+      "multer (file uploads)",
+      "zod (validation)",
+      "wouter (routing)"
+    ],
+    "development": [
+      "vite (build tool)",
+      "typescript (type safety)",
+      "tsx (TS execution)",
+      "drizzle-kit (DB migrations)",
+      "tailwindcss (styling)"
+    ]
+  }
+}
