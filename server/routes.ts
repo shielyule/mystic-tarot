@@ -17,7 +17,7 @@ function parseCardFromFilename(filename: string) {
   }
 
   // Major Arcana mapping - handle various naming conventions
-  const majorArcana = {
+  const majorArcana: Record<string, { name: string; number: number }> = {
     'fool': { name: 'The Fool', number: 0 },
     'the_fool': { name: 'The Fool', number: 0 },
     'magician': { name: 'The Magician', number: 1 },
@@ -339,11 +339,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         // Create card record based on filename
         const cardData = parseCardFromFilename(cardName);
-        if (cardData) {
+        if (cardData && !cardData.isCardBack && cardData.name) {
           const card = await storage.createCard({
             deckId,
             name: cardData.name,
-            arcana: cardData.arcana,
+            arcana: cardData.arcana as 'major' | 'minor',
             suit: cardData.suit,
             number: cardData.number,
             imageUrl: upload.fileUrl,
