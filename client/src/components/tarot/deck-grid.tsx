@@ -32,7 +32,7 @@ export default function DeckGrid({
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: index * 0.1, duration: 0.5 }}
-          className="bg-black/40 backdrop-blur-md rounded-xl p-6 border border-mystic-gold/20 hover:border-mystic-gold/40 transition-all cursor-pointer group hover:scale-105"
+          className="group cursor-pointer rounded-xl border border-white/15 bg-black/40 p-6 backdrop-blur-md transition-all hover:border-primary/50 hover:scale-105"
           onClick={() => onDeckSelect(deck)}
         >
           <div 
@@ -43,20 +43,20 @@ export default function DeckGrid({
                 : "url('https://images.unsplash.com/photo-1551029506-0807df4e2031?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&h=400')"
             }}
           />
-          <h3 className="font-cinzel text-xl font-semibold text-mystic-gold mb-2">
+          <h3 className="font-headline-md mb-2 text-xl font-semibold text-primary">
             {deck.name}
           </h3>
-          <p className="text-mystic-gold-light text-sm mb-4 line-clamp-2">
+          <p className="mb-4 line-clamp-2 text-sm text-muted-foreground">
             {deck.description}
           </p>
           <div className="flex items-center justify-between">
-            <span className="text-xs bg-mystic-600/50 text-mystic-gold-light px-2 py-1 rounded">
+            <span className="rounded bg-secondary/80 px-2 py-1 text-xs text-secondary-foreground">
               78 Cards
             </span>
             <Button
               variant="ghost"
               size="icon"
-              className="text-mystic-gold hover:text-mystic-gold-light transition-colors opacity-0 group-hover:opacity-100"
+              className="text-primary opacity-0 transition-colors group-hover:opacity-100 hover:text-primary/80"
             >
               <ArrowRight className="w-4 h-4" />
             </Button>
@@ -69,29 +69,29 @@ export default function DeckGrid({
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: filteredDecks.length * 0.1, duration: 0.5 }}
-        className="bg-black/40 backdrop-blur-md rounded-xl p-6 border border-dashed border-mystic-gold/20 hover:border-mystic-gold/40 transition-all cursor-pointer group hover:scale-105"
+        className="group cursor-pointer rounded-xl border border-dashed border-white/20 bg-black/40 p-6 backdrop-blur-md transition-all hover:border-primary/50 hover:scale-105"
         onClick={onCreateCustom}
       >
-        <div className="aspect-[3/2] rounded-lg mb-4 bg-mystic-600/20 flex items-center justify-center">
+        <div className="mb-4 flex aspect-[3/2] items-center justify-center rounded-lg bg-secondary/30">
           <div className="text-center">
-            <Plus className="text-mystic-gold text-3xl mb-2 mx-auto" />
-            <p className="text-mystic-gold-light text-sm">Create Custom Deck</p>
+            <Plus className="mx-auto mb-2 text-3xl text-primary" />
+            <p className="text-sm text-muted-foreground">Create Custom Deck</p>
           </div>
         </div>
-        <h3 className="font-cinzel text-xl font-semibold text-mystic-gold mb-2">
+        <h3 className="mb-2 font-headline-md text-xl font-semibold text-primary">
           Your Custom Deck
         </h3>
-        <p className="text-mystic-gold-light text-sm mb-4">
+        <p className="mb-4 text-sm text-muted-foreground">
           Upload your own card designs and create a personalized tarot experience.
         </p>
         <div className="flex items-center justify-between">
-          <span className="text-xs bg-mystic-600/50 text-mystic-gold-light px-2 py-1 rounded">
+          <span className="rounded bg-secondary/80 px-2 py-1 text-xs text-secondary-foreground">
             Upload
           </span>
           <Button
             variant="ghost"
             size="icon"
-            className="text-mystic-gold hover:text-mystic-gold-light transition-colors opacity-0 group-hover:opacity-100"
+            className="text-primary opacity-0 transition-colors group-hover:opacity-100 hover:text-primary/80"
           >
             <Plus className="w-4 h-4" />
           </Button>

@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import DeckGrid from "@/components/tarot/deck-grid";
 import { type Deck } from "@shared/schema";
+import { setActiveDeckId } from "@/lib/active-deck";
 
 export default function Decks() {
   const [, navigate] = useLocation();
@@ -22,7 +23,7 @@ export default function Decks() {
   ];
 
   const handleDeckSelect = (deck: Deck) => {
-    // Navigate to home with selected deck
+    setActiveDeckId(deck.id);
     navigate("/");
   };
 
@@ -34,8 +35,8 @@ export default function Decks() {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-mystic-gold mx-auto mb-4"></div>
-          <p className="text-mystic-gold-light">Loading mystical decks...</p>
+          <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-b-2 border-red-600" />
+          <p className="font-mono-data text-muted-foreground">Loading deck modules…</p>
         </div>
       </div>
     );
@@ -44,11 +45,11 @@ export default function Decks() {
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
       <div className="text-center mb-8 animate-fade-in">
-        <h2 className="font-cinzel text-4xl md:text-5xl font-semibold mb-4 text-mystic-gold">
-          Choose Your Deck
+        <h2 className="font-headline-md text-headline-lg mb-4 font-semibold text-primary md:text-5xl">
+          Monolith — deck registry
         </h2>
-        <p className="text-mystic-gold-light text-lg max-w-2xl mx-auto">
-          Select from our collection of mystical tarot decks, each with its own unique energy and symbolism
+        <p className="mx-auto max-w-2xl text-lg text-muted-foreground">
+          Select an active deck module for arcana calibration.
         </p>
       </div>
 
@@ -59,10 +60,10 @@ export default function Decks() {
             <Button
               key={filter.id}
               onClick={() => setSelectedFilter(filter.id)}
-              className={`px-6 py-3 rounded-lg font-semibold transition-colors ${
+              className={`rounded-lg px-6 py-3 font-semibold transition-colors ${
                 selectedFilter === filter.id
-                  ? "bg-mystic-gold text-mystic-900"
-                  : "bg-mystic-600/80 hover:bg-mystic-600 text-white"
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-secondary/90 text-secondary-foreground hover:bg-secondary"
               }`}
             >
               {filter.label}

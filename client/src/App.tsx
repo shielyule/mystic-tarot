@@ -24,28 +24,24 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <div className="relative min-h-screen overflow-hidden">
-          {/* Mystical Background */}
-          <div 
-            className="fixed inset-0 bg-gradient-to-br from-mystic-900 via-mystic-800 to-mystic-600 opacity-30"
-            style={{
-              backgroundImage: "url('https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&h=1080')",
-              backgroundSize: "cover",
-              backgroundPosition: "center"
-            }}
-          />
-          
-          {/* Mystical Overlay Effects */}
-          <div className="fixed inset-0 bg-gradient-to-t from-mystic-900/90 via-transparent to-mystic-900/40" />
-          <div className="fixed top-0 left-0 w-full h-full opacity-20">
-            <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-mystic-gold/10 rounded-full blur-3xl animate-mystical-glow" />
-            <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl animate-mystical-glow" style={{animationDelay: "1s"}} />
-          </div>
-
+        <div className="relative min-h-screen bg-[#050505]">
           <Navigation />
-          <main className="relative z-10 min-h-screen pt-8">
+          <main className="relative z-10 min-h-screen pt-16 pb-12 md:pt-20 md:pb-14">
             <Router />
           </main>
+          <footer className="fixed bottom-0 left-0 z-50 flex h-10 w-full items-center justify-between border-t-2 border-white bg-black/90 px-3 sm:px-6 md:px-12">
+            <div className="font-label-caps text-[9px] tracking-widest text-white sm:text-[10px]">
+              © Discovery One — Arcana Readings
+            </div>
+            <div className="hidden gap-6 sm:flex">
+              <span className="font-label-caps text-[10px] tracking-widest text-white/70">
+                PROTOCOL_AI
+              </span>
+              <span className="font-label-caps text-[10px] tracking-widest text-white/70">
+                TELEMETRY_LOG
+              </span>
+            </div>
+          </footer>
           <Toaster />
         </div>
       </TooltipProvider>

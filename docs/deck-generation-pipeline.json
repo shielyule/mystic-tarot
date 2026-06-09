@@ -1,0 +1,825 @@
+{
+  "meta": {
+    "title": "Discovery One — HAL Deck Generation Pipeline",
+    "version": "1.0",
+    "purpose": "Batch-generate a consistent 78-card tarot deck for Leonardo, Midjourney, Flux, or Gemini Imagen, then upload via CMS.",
+    "aspectRatio": "2:3",
+    "exportSizePx": {
+      "width": 1024,
+      "height": 1536
+    },
+    "filenameConvention": "kebab-case matching Cards-png/ (e.g. the-fool.png, ace-of-cups.png)"
+  },
+  "styleGuide": {
+    "summary": "1970s deep-space oracle deck aboard Discovery One. Clinical white corridors meet cosmic mysticism. HAL red as accent only — never dominate the frame.",
+    "palette": {
+      "primary": "#FF5540",
+      "halLensRed": "#CC0000",
+      "voidBlack": "#050505",
+      "panelWhite": "#E8E8E8",
+      "starfield": "#0a0a1a",
+      "accentGold": "#C4A35A"
+    },
+    "border": {
+      "description": "Thin double-line frame: outer white 2px, inner red 1px, 8px corner brackets like CRT telemetry. Consistent margin on every card.",
+      "mustBeIdentical": true
+    },
+    "motifs": [
+      "Subtle circular HAL lens reflection in upper third (optional, small)",
+      "Starfield or grid telemetry in background — never busy",
+      "Roman numerals for Major Arcana bottom-centre",
+      "Suit pip count visible for Minor Arcana"
+    ],
+    "symbolism": "Symbolic and archetypal — avoid photorealistic human faces. Silhouettes, masks, or gloved hands acceptable. No copyrighted HAL dialogue or exact film stills.",
+    "negativePromptGlobal": "text, watermark, logo, blurry, low quality, duplicate border, inconsistent frame, modern UI, smartphone, anime chibi, gore, nudity, extra fingers, misspelled titles"
+  },
+  "pipeline": {
+    "phase1_styleLock": {
+      "description": "Generate 5 test cards. Reject until border, palette, and tone match. Save the winning seed/settings as master reference.",
+      "cards": [
+        "the-fool",
+        "the-magician",
+        "ace-of-cups",
+        "ace-of-swords",
+        "ace-of-pentacles"
+      ],
+      "acceptanceCriteria": [
+        "Identical border treatment on all 5",
+        "Readable suit/arcana identity at thumbnail size",
+        "HAL red used as accent only",
+        "No text garbling in card title area"
+      ]
+    },
+    "phase2_majorArcana": {
+      "description": "Batch all 22 Major Arcana using locked style reference.",
+      "count": 22,
+      "filenames": [
+        "the-fool",
+        "the-magician",
+        "the-high-priestess",
+        "the-empress",
+        "the-emperor",
+        "the-hierophant",
+        "the-lovers",
+        "the-chariot",
+        "strength",
+        "the-hermit",
+        "wheel-of-fortune",
+        "justice",
+        "the-hanged-man",
+        "death",
+        "temperance",
+        "the-devil",
+        "the-tower",
+        "the-star",
+        "the-moon",
+        "the-sun",
+        "judgement",
+        "the-world"
+      ]
+    },
+    "phase3_minorArcana": {
+      "description": "Generate one suit at a time (14 cards × 4 suits = 56). Re-use suit colour coding.",
+      "suits": [
+        {
+          "id": "wands",
+          "element": "fire",
+          "paletteHint": "warm amber, ember glow"
+        },
+        {
+          "id": "cups",
+          "element": "water",
+          "paletteHint": "deep teal, lunar silver"
+        },
+        {
+          "id": "swords",
+          "element": "air",
+          "paletteHint": "cold grey, sharp geometry"
+        },
+        {
+          "id": "pentacles",
+          "element": "earth",
+          "paletteHint": "oxidised copper, circuit traces"
+        }
+      ],
+      "ranksPerSuit": [
+        "ace",
+        "two",
+        "three",
+        "four",
+        "five",
+        "six",
+        "seven",
+        "eight",
+        "nine",
+        "ten",
+        "page",
+        "knight",
+        "queen",
+        "king"
+      ]
+    },
+    "phase4_qa": {
+      "checks": [
+        "Correct pip count or court rank",
+        "No duplicate compositions",
+        "Crop/fill to 1024×1536 without cutting border",
+        "Filename matches slug exactly",
+        "Visual consistency with phase1 reference set"
+      ],
+      "reRollOnly": "Cards that fail QA — do not regenerate the full deck"
+    },
+    "phase5_normalizeAndUpload": {
+      "resize": "1024×1536 PNG",
+      "naming": "slug.png in Cards-png/ or CMS bulk upload",
+      "cardBack": "Roses_and_Lilies_back.jpg or custom back matching style guide",
+      "cmsRoute": "/cms — bulk upload deck, then assign to deck module"
+    }
+  },
+  "leonardoBatchTips": {
+    "problem": "Leonardo UI is painful one-at-a-time without structure.",
+    "suggestions": [
+      "Use Leonardo Image Guidance / Style Reference: upload your best phase1 card as fixed reference.",
+      "Create a spreadsheet or this JSON — one row per card — paste prompt column into Leonardo in batches of 5–10.",
+      "Leonardo API (if on paid tier): script POST requests with shared modelId + styleReferenceAssetId.",
+      "Alternative: export prompts from scripts/generate-deck-prompts.mjs (see repo) and batch in Leonardo Bulk Create if available.",
+      "Keep a 'reject' folder; only promote QA-pass cards to final/"
+    ]
+  },
+  "promptTemplate": {
+    "structure": "{stylePrefix} Tarot card illustration, {cardTitle}, {arcanaOrSuitContext}. {symbolismNotes}. {styleGuide.border.description}. Palette: void black background, panel white frame, HAL red accent. 2:3 vertical card. {negativePromptGlobal}",
+    "stylePrefix": "1970s sci-fi oracle deck, Discovery One aesthetic, retro-futuristic, cinematic lighting,",
+    "variables": {
+      "cardTitle": "Display name e.g. The Fool, Ace of Cups",
+      "arcanaOrSuitContext": "Major Arcana number {n} OR {rank} of {suit} ({element} element)",
+      "symbolismNotes": "Rider-Waite symbolic composition reinterpreted in space-mission visual language"
+    }
+  },
+  "examplePrompts": {
+    "the-fool": "1970s sci-fi oracle deck, Discovery One aesthetic. Tarot card The Fool, Major Arcana 0. Youth at cliff edge replaced by astronaut at airlock threshold, small cosmic dog companion, white space suit, starfield. Thin double-line white border, red corner brackets, small HAL lens glint upper third. 2:3 vertical. No text.",
+    "the-magician": "1970s sci-fi oracle deck. Tarot card The Magician, Major Arcana I. Figure at telemetry console, four suit symbols as holographic icons on table, red lens accent. Consistent white/red border frame. Symbolic not photorealistic face. 2:3 vertical. No text.",
+    "ace-of-cups": "1970s sci-fi oracle deck. Ace of Cups, water element. Grail as crystalline fluid reservoir floating in zero-G, teal lunar glow, starfield. Matching border frame from style reference. 2:3 vertical. No text.",
+    "ace-of-swords": "1970s sci-fi oracle deck. Ace of Swords, air element. Single blade as beacon antenna piercing cloud nebula, cold grey geometry. Matching border frame. 2:3 vertical. No text.",
+    "ace-of-pentacles": "1970s sci-fi oracle deck. Ace of Pentacles, earth element. Coin as copper circuit disc with orbital ring, oxidised metal glow. Matching border frame. 2:3 vertical. No text."
+  },
+  "cards": [
+    {
+      "slug": "the-fool",
+      "filename": "the-fool.png",
+      "phase": "phase2_majorArcana",
+      "title": "The Fool",
+      "prompt": "1970s sci-fi oracle deck, Discovery One aesthetic, retro-futuristic, cinematic lighting, Tarot card illustration, The Fool. Major Arcana 0. Major Arcana 0 — leap into the unknown, airlock threshold. Rider-Waite symbolism in space-mission visual language. Thin double-line frame: outer white 2px, inner red 1px, 8px corner brackets like CRT telemetry. Consistent margin on every card.. Palette: void black, panel white frame, HAL red accent. 2:3 vertical. text, watermark, logo, blurry, low quality, duplicate border, inconsistent frame, modern UI, smartphone, anime chibi, gore, nudity, extra fingers, misspelled titles"
+    },
+    {
+      "slug": "the-magician",
+      "filename": "the-magician.png",
+      "phase": "phase2_majorArcana",
+      "title": "The Magician",
+      "prompt": "1970s sci-fi oracle deck, Discovery One aesthetic, retro-futuristic, cinematic lighting, Tarot card illustration, The Magician. Major Arcana 1. Major Arcana I — will and tools, holographic suit symbols. Rider-Waite symbolism in space-mission visual language. Thin double-line frame: outer white 2px, inner red 1px, 8px corner brackets like CRT telemetry. Consistent margin on every card.. Palette: void black, panel white frame, HAL red accent. 2:3 vertical. text, watermark, logo, blurry, low quality, duplicate border, inconsistent frame, modern UI, smartphone, anime chibi, gore, nudity, extra fingers, misspelled titles"
+    },
+    {
+      "slug": "the-high-priestess",
+      "filename": "the-high-priestess.png",
+      "phase": "phase2_majorArcana",
+      "title": "The High Priestess",
+      "prompt": "1970s sci-fi oracle deck, Discovery One aesthetic, retro-futuristic, cinematic lighting, Tarot card illustration, The High Priestess. Major Arcana 2. Major Arcana II — veil between worlds, lunar telemetry. Rider-Waite symbolism in space-mission visual language. Thin double-line frame: outer white 2px, inner red 1px, 8px corner brackets like CRT telemetry. Consistent margin on every card.. Palette: void black, panel white frame, HAL red accent. 2:3 vertical. text, watermark, logo, blurry, low quality, duplicate border, inconsistent frame, modern UI, smartphone, anime chibi, gore, nudity, extra fingers, misspelled titles"
+    },
+    {
+      "slug": "the-empress",
+      "filename": "the-empress.png",
+      "phase": "phase2_majorArcana",
+      "title": "The Empress",
+      "prompt": "1970s sci-fi oracle deck, Discovery One aesthetic, retro-futuristic, cinematic lighting, Tarot card illustration, The Empress. Major Arcana 3. Major Arcana III — abundance, life support gardens. Rider-Waite symbolism in space-mission visual language. Thin double-line frame: outer white 2px, inner red 1px, 8px corner brackets like CRT telemetry. Consistent margin on every card.. Palette: void black, panel white frame, HAL red accent. 2:3 vertical. text, watermark, logo, blurry, low quality, duplicate border, inconsistent frame, modern UI, smartphone, anime chibi, gore, nudity, extra fingers, misspelled titles"
+    },
+    {
+      "slug": "the-emperor",
+      "filename": "the-emperor.png",
+      "phase": "phase2_majorArcana",
+      "title": "The Emperor",
+      "prompt": "1970s sci-fi oracle deck, Discovery One aesthetic, retro-futuristic, cinematic lighting, Tarot card illustration, The Emperor. Major Arcana 4. Major Arcana IV — authority, command throne. Rider-Waite symbolism in space-mission visual language. Thin double-line frame: outer white 2px, inner red 1px, 8px corner brackets like CRT telemetry. Consistent margin on every card.. Palette: void black, panel white frame, HAL red accent. 2:3 vertical. text, watermark, logo, blurry, low quality, duplicate border, inconsistent frame, modern UI, smartphone, anime chibi, gore, nudity, extra fingers, misspelled titles"
+    },
+    {
+      "slug": "the-hierophant",
+      "filename": "the-hierophant.png",
+      "phase": "phase2_majorArcana",
+      "title": "The Hierophant",
+      "prompt": "1970s sci-fi oracle deck, Discovery One aesthetic, retro-futuristic, cinematic lighting, Tarot card illustration, The Hierophant. Major Arcana 5. Major Arcana V — tradition, ritual transmission. Rider-Waite symbolism in space-mission visual language. Thin double-line frame: outer white 2px, inner red 1px, 8px corner brackets like CRT telemetry. Consistent margin on every card.. Palette: void black, panel white frame, HAL red accent. 2:3 vertical. text, watermark, logo, blurry, low quality, duplicate border, inconsistent frame, modern UI, smartphone, anime chibi, gore, nudity, extra fingers, misspelled titles"
+    },
+    {
+      "slug": "the-lovers",
+      "filename": "the-lovers.png",
+      "phase": "phase2_majorArcana",
+      "title": "The Lovers",
+      "prompt": "1970s sci-fi oracle deck, Discovery One aesthetic, retro-futuristic, cinematic lighting, Tarot card illustration, The Lovers. Major Arcana 6. Major Arcana VI — choice, twin signals in phase. Rider-Waite symbolism in space-mission visual language. Thin double-line frame: outer white 2px, inner red 1px, 8px corner brackets like CRT telemetry. Consistent margin on every card.. Palette: void black, panel white frame, HAL red accent. 2:3 vertical. text, watermark, logo, blurry, low quality, duplicate border, inconsistent frame, modern UI, smartphone, anime chibi, gore, nudity, extra fingers, misspelled titles"
+    },
+    {
+      "slug": "the-chariot",
+      "filename": "the-chariot.png",
+      "phase": "phase2_majorArcana",
+      "title": "The Chariot",
+      "prompt": "1970s sci-fi oracle deck, Discovery One aesthetic, retro-futuristic, cinematic lighting, Tarot card illustration, The Chariot. Major Arcana 7. Major Arcana VII — victory, rover crossing void. Rider-Waite symbolism in space-mission visual language. Thin double-line frame: outer white 2px, inner red 1px, 8px corner brackets like CRT telemetry. Consistent margin on every card.. Palette: void black, panel white frame, HAL red accent. 2:3 vertical. text, watermark, logo, blurry, low quality, duplicate border, inconsistent frame, modern UI, smartphone, anime chibi, gore, nudity, extra fingers, misspelled titles"
+    },
+    {
+      "slug": "strength",
+      "filename": "strength.png",
+      "phase": "phase2_majorArcana",
+      "title": "Strength",
+      "prompt": "1970s sci-fi oracle deck, Discovery One aesthetic, retro-futuristic, cinematic lighting, Tarot card illustration, Strength. Major Arcana 8. Major Arcana VIII — gentle power, taming solar flare. Rider-Waite symbolism in space-mission visual language. Thin double-line frame: outer white 2px, inner red 1px, 8px corner brackets like CRT telemetry. Consistent margin on every card.. Palette: void black, panel white frame, HAL red accent. 2:3 vertical. text, watermark, logo, blurry, low quality, duplicate border, inconsistent frame, modern UI, smartphone, anime chibi, gore, nudity, extra fingers, misspelled titles"
+    },
+    {
+      "slug": "the-hermit",
+      "filename": "the-hermit.png",
+      "phase": "phase2_majorArcana",
+      "title": "The Hermit",
+      "prompt": "1970s sci-fi oracle deck, Discovery One aesthetic, retro-futuristic, cinematic lighting, Tarot card illustration, The Hermit. Major Arcana 9. Major Arcana IX — lantern in deep space solitude. Rider-Waite symbolism in space-mission visual language. Thin double-line frame: outer white 2px, inner red 1px, 8px corner brackets like CRT telemetry. Consistent margin on every card.. Palette: void black, panel white frame, HAL red accent. 2:3 vertical. text, watermark, logo, blurry, low quality, duplicate border, inconsistent frame, modern UI, smartphone, anime chibi, gore, nudity, extra fingers, misspelled titles"
+    },
+    {
+      "slug": "wheel-of-fortune",
+      "filename": "wheel-of-fortune.png",
+      "phase": "phase2_majorArcana",
+      "title": "Wheel of Fortune",
+      "prompt": "1970s sci-fi oracle deck, Discovery One aesthetic, retro-futuristic, cinematic lighting, Tarot card illustration, Wheel of Fortune. Major Arcana 10. Major Arcana X — cycles, orbital mechanics. Rider-Waite symbolism in space-mission visual language. Thin double-line frame: outer white 2px, inner red 1px, 8px corner brackets like CRT telemetry. Consistent margin on every card.. Palette: void black, panel white frame, HAL red accent. 2:3 vertical. text, watermark, logo, blurry, low quality, duplicate border, inconsistent frame, modern UI, smartphone, anime chibi, gore, nudity, extra fingers, misspelled titles"
+    },
+    {
+      "slug": "justice",
+      "filename": "justice.png",
+      "phase": "phase2_majorArcana",
+      "title": "Justice",
+      "prompt": "1970s sci-fi oracle deck, Discovery One aesthetic, retro-futuristic, cinematic lighting, Tarot card illustration, Justice. Major Arcana 11. Major Arcana XI — balance, calibration scales. Rider-Waite symbolism in space-mission visual language. Thin double-line frame: outer white 2px, inner red 1px, 8px corner brackets like CRT telemetry. Consistent margin on every card.. Palette: void black, panel white frame, HAL red accent. 2:3 vertical. text, watermark, logo, blurry, low quality, duplicate border, inconsistent frame, modern UI, smartphone, anime chibi, gore, nudity, extra fingers, misspelled titles"
+    },
+    {
+      "slug": "the-hanged-man",
+      "filename": "the-hanged-man.png",
+      "phase": "phase2_majorArcana",
+      "title": "The Hanged Man",
+      "prompt": "1970s sci-fi oracle deck, Discovery One aesthetic, retro-futuristic, cinematic lighting, Tarot card illustration, The Hanged Man. Major Arcana 12. Major Arcana XII — suspension, inverted perspective. Rider-Waite symbolism in space-mission visual language. Thin double-line frame: outer white 2px, inner red 1px, 8px corner brackets like CRT telemetry. Consistent margin on every card.. Palette: void black, panel white frame, HAL red accent. 2:3 vertical. text, watermark, logo, blurry, low quality, duplicate border, inconsistent frame, modern UI, smartphone, anime chibi, gore, nudity, extra fingers, misspelled titles"
+    },
+    {
+      "slug": "death",
+      "filename": "death.png",
+      "phase": "phase2_majorArcana",
+      "title": "Death",
+      "prompt": "1970s sci-fi oracle deck, Discovery One aesthetic, retro-futuristic, cinematic lighting, Tarot card illustration, Death. Major Arcana 13. Major Arcana XIII — transformation, stellar rebirth. Rider-Waite symbolism in space-mission visual language. Thin double-line frame: outer white 2px, inner red 1px, 8px corner brackets like CRT telemetry. Consistent margin on every card.. Palette: void black, panel white frame, HAL red accent. 2:3 vertical. text, watermark, logo, blurry, low quality, duplicate border, inconsistent frame, modern UI, smartphone, anime chibi, gore, nudity, extra fingers, misspelled titles"
+    },
+    {
+      "slug": "temperance",
+      "filename": "temperance.png",
+      "phase": "phase2_majorArcana",
+      "title": "Temperance",
+      "prompt": "1970s sci-fi oracle deck, Discovery One aesthetic, retro-futuristic, cinematic lighting, Tarot card illustration, Temperance. Major Arcana 14. Major Arcana XIV — alchemy, fluid mixing in zero-G. Rider-Waite symbolism in space-mission visual language. Thin double-line frame: outer white 2px, inner red 1px, 8px corner brackets like CRT telemetry. Consistent margin on every card.. Palette: void black, panel white frame, HAL red accent. 2:3 vertical. text, watermark, logo, blurry, low quality, duplicate border, inconsistent frame, modern UI, smartphone, anime chibi, gore, nudity, extra fingers, misspelled titles"
+    },
+    {
+      "slug": "the-devil",
+      "filename": "the-devil.png",
+      "phase": "phase2_majorArcana",
+      "title": "The Devil",
+      "prompt": "1970s sci-fi oracle deck, Discovery One aesthetic, retro-futuristic, cinematic lighting, Tarot card illustration, The Devil. Major Arcana 15. Major Arcana XV — bondage, chain of dependency. Rider-Waite symbolism in space-mission visual language. Thin double-line frame: outer white 2px, inner red 1px, 8px corner brackets like CRT telemetry. Consistent margin on every card.. Palette: void black, panel white frame, HAL red accent. 2:3 vertical. text, watermark, logo, blurry, low quality, duplicate border, inconsistent frame, modern UI, smartphone, anime chibi, gore, nudity, extra fingers, misspelled titles"
+    },
+    {
+      "slug": "the-tower",
+      "filename": "the-tower.png",
+      "phase": "phase2_majorArcana",
+      "title": "The Tower",
+      "prompt": "1970s sci-fi oracle deck, Discovery One aesthetic, retro-futuristic, cinematic lighting, Tarot card illustration, The Tower. Major Arcana 16. Major Arcana XVI — lightning strike on antenna spire. Rider-Waite symbolism in space-mission visual language. Thin double-line frame: outer white 2px, inner red 1px, 8px corner brackets like CRT telemetry. Consistent margin on every card.. Palette: void black, panel white frame, HAL red accent. 2:3 vertical. text, watermark, logo, blurry, low quality, duplicate border, inconsistent frame, modern UI, smartphone, anime chibi, gore, nudity, extra fingers, misspelled titles"
+    },
+    {
+      "slug": "the-star",
+      "filename": "the-star.png",
+      "phase": "phase2_majorArcana",
+      "title": "The Star",
+      "prompt": "1970s sci-fi oracle deck, Discovery One aesthetic, retro-futuristic, cinematic lighting, Tarot card illustration, The Star. Major Arcana 17. Major Arcana XVII — hope, navigation star pour. Rider-Waite symbolism in space-mission visual language. Thin double-line frame: outer white 2px, inner red 1px, 8px corner brackets like CRT telemetry. Consistent margin on every card.. Palette: void black, panel white frame, HAL red accent. 2:3 vertical. text, watermark, logo, blurry, low quality, duplicate border, inconsistent frame, modern UI, smartphone, anime chibi, gore, nudity, extra fingers, misspelled titles"
+    },
+    {
+      "slug": "the-moon",
+      "filename": "the-moon.png",
+      "phase": "phase2_majorArcana",
+      "title": "The Moon",
+      "prompt": "1970s sci-fi oracle deck, Discovery One aesthetic, retro-futuristic, cinematic lighting, Tarot card illustration, The Moon. Major Arcana 18. Major Arcana XVIII — illusion, eclipse and crustacean path. Rider-Waite symbolism in space-mission visual language. Thin double-line frame: outer white 2px, inner red 1px, 8px corner brackets like CRT telemetry. Consistent margin on every card.. Palette: void black, panel white frame, HAL red accent. 2:3 vertical. text, watermark, logo, blurry, low quality, duplicate border, inconsistent frame, modern UI, smartphone, anime chibi, gore, nudity, extra fingers, misspelled titles"
+    },
+    {
+      "slug": "the-sun",
+      "filename": "the-sun.png",
+      "phase": "phase2_majorArcana",
+      "title": "The Sun",
+      "prompt": "1970s sci-fi oracle deck, Discovery One aesthetic, retro-futuristic, cinematic lighting, Tarot card illustration, The Sun. Major Arcana 19. Major Arcana XIX — joy, solar radiance through viewport. Rider-Waite symbolism in space-mission visual language. Thin double-line frame: outer white 2px, inner red 1px, 8px corner brackets like CRT telemetry. Consistent margin on every card.. Palette: void black, panel white frame, HAL red accent. 2:3 vertical. text, watermark, logo, blurry, low quality, duplicate border, inconsistent frame, modern UI, smartphone, anime chibi, gore, nudity, extra fingers, misspelled titles"
+    },
+    {
+      "slug": "judgement",
+      "filename": "judgement.png",
+      "phase": "phase2_majorArcana",
+      "title": "Judgement",
+      "prompt": "1970s sci-fi oracle deck, Discovery One aesthetic, retro-futuristic, cinematic lighting, Tarot card illustration, Judgement. Major Arcana 20. Major Arcana XX — awakening, trumpet signal from void. Rider-Waite symbolism in space-mission visual language. Thin double-line frame: outer white 2px, inner red 1px, 8px corner brackets like CRT telemetry. Consistent margin on every card.. Palette: void black, panel white frame, HAL red accent. 2:3 vertical. text, watermark, logo, blurry, low quality, duplicate border, inconsistent frame, modern UI, smartphone, anime chibi, gore, nudity, extra fingers, misspelled titles"
+    },
+    {
+      "slug": "the-world",
+      "filename": "the-world.png",
+      "phase": "phase2_majorArcana",
+      "title": "The World",
+      "prompt": "1970s sci-fi oracle deck, Discovery One aesthetic, retro-futuristic, cinematic lighting, Tarot card illustration, The World. Major Arcana 21. Major Arcana XXI — completion, wreath of orbit paths. Rider-Waite symbolism in space-mission visual language. Thin double-line frame: outer white 2px, inner red 1px, 8px corner brackets like CRT telemetry. Consistent margin on every card.. Palette: void black, panel white frame, HAL red accent. 2:3 vertical. text, watermark, logo, blurry, low quality, duplicate border, inconsistent frame, modern UI, smartphone, anime chibi, gore, nudity, extra fingers, misspelled titles"
+    },
+    {
+      "slug": "ace-of-wands",
+      "filename": "ace-of-wands.png",
+      "phase": "phase3_minorArcana",
+      "suit": "wands",
+      "rank": "ace",
+      "title": "Ace of Wands",
+      "prompt": "1970s sci-fi oracle deck, Discovery One aesthetic, retro-futuristic, cinematic lighting, Tarot card illustration, Ace of Wands. ace of wands, fire element, warm amber ember glow. Rider-Waite symbolic composition reinterpreted in space-mission visual language. Rider-Waite symbolism in space-mission visual language. Thin double-line frame: outer white 2px, inner red 1px, 8px corner brackets like CRT telemetry. Consistent margin on every card.. Palette: void black, panel white frame, HAL red accent. 2:3 vertical. text, watermark, logo, blurry, low quality, duplicate border, inconsistent frame, modern UI, smartphone, anime chibi, gore, nudity, extra fingers, misspelled titles"
+    },
+    {
+      "slug": "two-of-wands",
+      "filename": "two-of-wands.png",
+      "phase": "phase3_minorArcana",
+      "suit": "wands",
+      "rank": "two",
+      "title": "Two of Wands",
+      "prompt": "1970s sci-fi oracle deck, Discovery One aesthetic, retro-futuristic, cinematic lighting, Tarot card illustration, Two of Wands. two of wands, fire element, warm amber ember glow. Rider-Waite symbolic composition reinterpreted in space-mission visual language. Rider-Waite symbolism in space-mission visual language. Thin double-line frame: outer white 2px, inner red 1px, 8px corner brackets like CRT telemetry. Consistent margin on every card.. Palette: void black, panel white frame, HAL red accent. 2:3 vertical. text, watermark, logo, blurry, low quality, duplicate border, inconsistent frame, modern UI, smartphone, anime chibi, gore, nudity, extra fingers, misspelled titles"
+    },
+    {
+      "slug": "three-of-wands",
+      "filename": "three-of-wands.png",
+      "phase": "phase3_minorArcana",
+      "suit": "wands",
+      "rank": "three",
+      "title": "Three of Wands",
+      "prompt": "1970s sci-fi oracle deck, Discovery One aesthetic, retro-futuristic, cinematic lighting, Tarot card illustration, Three of Wands. three of wands, fire element, warm amber ember glow. Rider-Waite symbolic composition reinterpreted in space-mission visual language. Rider-Waite symbolism in space-mission visual language. Thin double-line frame: outer white 2px, inner red 1px, 8px corner brackets like CRT telemetry. Consistent margin on every card.. Palette: void black, panel white frame, HAL red accent. 2:3 vertical. text, watermark, logo, blurry, low quality, duplicate border, inconsistent frame, modern UI, smartphone, anime chibi, gore, nudity, extra fingers, misspelled titles"
+    },
+    {
+      "slug": "four-of-wands",
+      "filename": "four-of-wands.png",
+      "phase": "phase3_minorArcana",
+      "suit": "wands",
+      "rank": "four",
+      "title": "Four of Wands",
+      "prompt": "1970s sci-fi oracle deck, Discovery One aesthetic, retro-futuristic, cinematic lighting, Tarot card illustration, Four of Wands. four of wands, fire element, warm amber ember glow. Rider-Waite symbolic composition reinterpreted in space-mission visual language. Rider-Waite symbolism in space-mission visual language. Thin double-line frame: outer white 2px, inner red 1px, 8px corner brackets like CRT telemetry. Consistent margin on every card.. Palette: void black, panel white frame, HAL red accent. 2:3 vertical. text, watermark, logo, blurry, low quality, duplicate border, inconsistent frame, modern UI, smartphone, anime chibi, gore, nudity, extra fingers, misspelled titles"
+    },
+    {
+      "slug": "five-of-wands",
+      "filename": "five-of-wands.png",
+      "phase": "phase3_minorArcana",
+      "suit": "wands",
+      "rank": "five",
+      "title": "Five of Wands",
+      "prompt": "1970s sci-fi oracle deck, Discovery One aesthetic, retro-futuristic, cinematic lighting, Tarot card illustration, Five of Wands. five of wands, fire element, warm amber ember glow. Rider-Waite symbolic composition reinterpreted in space-mission visual language. Rider-Waite symbolism in space-mission visual language. Thin double-line frame: outer white 2px, inner red 1px, 8px corner brackets like CRT telemetry. Consistent margin on every card.. Palette: void black, panel white frame, HAL red accent. 2:3 vertical. text, watermark, logo, blurry, low quality, duplicate border, inconsistent frame, modern UI, smartphone, anime chibi, gore, nudity, extra fingers, misspelled titles"
+    },
+    {
+      "slug": "six-of-wands",
+      "filename": "six-of-wands.png",
+      "phase": "phase3_minorArcana",
+      "suit": "wands",
+      "rank": "six",
+      "title": "Six of Wands",
+      "prompt": "1970s sci-fi oracle deck, Discovery One aesthetic, retro-futuristic, cinematic lighting, Tarot card illustration, Six of Wands. six of wands, fire element, warm amber ember glow. Rider-Waite symbolic composition reinterpreted in space-mission visual language. Rider-Waite symbolism in space-mission visual language. Thin double-line frame: outer white 2px, inner red 1px, 8px corner brackets like CRT telemetry. Consistent margin on every card.. Palette: void black, panel white frame, HAL red accent. 2:3 vertical. text, watermark, logo, blurry, low quality, duplicate border, inconsistent frame, modern UI, smartphone, anime chibi, gore, nudity, extra fingers, misspelled titles"
+    },
+    {
+      "slug": "seven-of-wands",
+      "filename": "seven-of-wands.png",
+      "phase": "phase3_minorArcana",
+      "suit": "wands",
+      "rank": "seven",
+      "title": "Seven of Wands",
+      "prompt": "1970s sci-fi oracle deck, Discovery One aesthetic, retro-futuristic, cinematic lighting, Tarot card illustration, Seven of Wands. seven of wands, fire element, warm amber ember glow. Rider-Waite symbolic composition reinterpreted in space-mission visual language. Rider-Waite symbolism in space-mission visual language. Thin double-line frame: outer white 2px, inner red 1px, 8px corner brackets like CRT telemetry. Consistent margin on every card.. Palette: void black, panel white frame, HAL red accent. 2:3 vertical. text, watermark, logo, blurry, low quality, duplicate border, inconsistent frame, modern UI, smartphone, anime chibi, gore, nudity, extra fingers, misspelled titles"
+    },
+    {
+      "slug": "eight-of-wands",
+      "filename": "eight-of-wands.png",
+      "phase": "phase3_minorArcana",
+      "suit": "wands",
+      "rank": "eight",
+      "title": "Eight of Wands",
+      "prompt": "1970s sci-fi oracle deck, Discovery One aesthetic, retro-futuristic, cinematic lighting, Tarot card illustration, Eight of Wands. eight of wands, fire element, warm amber ember glow. Rider-Waite symbolic composition reinterpreted in space-mission visual language. Rider-Waite symbolism in space-mission visual language. Thin double-line frame: outer white 2px, inner red 1px, 8px corner brackets like CRT telemetry. Consistent margin on every card.. Palette: void black, panel white frame, HAL red accent. 2:3 vertical. text, watermark, logo, blurry, low quality, duplicate border, inconsistent frame, modern UI, smartphone, anime chibi, gore, nudity, extra fingers, misspelled titles"
+    },
+    {
+      "slug": "nine-of-wands",
+      "filename": "nine-of-wands.png",
+      "phase": "phase3_minorArcana",
+      "suit": "wands",
+      "rank": "nine",
+      "title": "Nine of Wands",
+      "prompt": "1970s sci-fi oracle deck, Discovery One aesthetic, retro-futuristic, cinematic lighting, Tarot card illustration, Nine of Wands. nine of wands, fire element, warm amber ember glow. Rider-Waite symbolic composition reinterpreted in space-mission visual language. Rider-Waite symbolism in space-mission visual language. Thin double-line frame: outer white 2px, inner red 1px, 8px corner brackets like CRT telemetry. Consistent margin on every card.. Palette: void black, panel white frame, HAL red accent. 2:3 vertical. text, watermark, logo, blurry, low quality, duplicate border, inconsistent frame, modern UI, smartphone, anime chibi, gore, nudity, extra fingers, misspelled titles"
+    },
+    {
+      "slug": "ten-of-wands",
+      "filename": "ten-of-wands.png",
+      "phase": "phase3_minorArcana",
+      "suit": "wands",
+      "rank": "ten",
+      "title": "Ten of Wands",
+      "prompt": "1970s sci-fi oracle deck, Discovery One aesthetic, retro-futuristic, cinematic lighting, Tarot card illustration, Ten of Wands. ten of wands, fire element, warm amber ember glow. Rider-Waite symbolic composition reinterpreted in space-mission visual language. Rider-Waite symbolism in space-mission visual language. Thin double-line frame: outer white 2px, inner red 1px, 8px corner brackets like CRT telemetry. Consistent margin on every card.. Palette: void black, panel white frame, HAL red accent. 2:3 vertical. text, watermark, logo, blurry, low quality, duplicate border, inconsistent frame, modern UI, smartphone, anime chibi, gore, nudity, extra fingers, misspelled titles"
+    },
+    {
+      "slug": "page-of-wands",
+      "filename": "page-of-wands.png",
+      "phase": "phase3_minorArcana",
+      "suit": "wands",
+      "rank": "page",
+      "title": "Page of Wands",
+      "prompt": "1970s sci-fi oracle deck, Discovery One aesthetic, retro-futuristic, cinematic lighting, Tarot card illustration, Page of Wands. page of wands, fire element, warm amber ember glow. Rider-Waite symbolic composition reinterpreted in space-mission visual language. Rider-Waite symbolism in space-mission visual language. Thin double-line frame: outer white 2px, inner red 1px, 8px corner brackets like CRT telemetry. Consistent margin on every card.. Palette: void black, panel white frame, HAL red accent. 2:3 vertical. text, watermark, logo, blurry, low quality, duplicate border, inconsistent frame, modern UI, smartphone, anime chibi, gore, nudity, extra fingers, misspelled titles"
+    },
+    {
+      "slug": "knight-of-wands",
+      "filename": "knight-of-wands.png",
+      "phase": "phase3_minorArcana",
+      "suit": "wands",
+      "rank": "knight",
+      "title": "Knight of Wands",
+      "prompt": "1970s sci-fi oracle deck, Discovery One aesthetic, retro-futuristic, cinematic lighting, Tarot card illustration, Knight of Wands. knight of wands, fire element, warm amber ember glow. Rider-Waite symbolic composition reinterpreted in space-mission visual language. Rider-Waite symbolism in space-mission visual language. Thin double-line frame: outer white 2px, inner red 1px, 8px corner brackets like CRT telemetry. Consistent margin on every card.. Palette: void black, panel white frame, HAL red accent. 2:3 vertical. text, watermark, logo, blurry, low quality, duplicate border, inconsistent frame, modern UI, smartphone, anime chibi, gore, nudity, extra fingers, misspelled titles"
+    },
+    {
+      "slug": "queen-of-wands",
+      "filename": "queen-of-wands.png",
+      "phase": "phase3_minorArcana",
+      "suit": "wands",
+      "rank": "queen",
+      "title": "Queen of Wands",
+      "prompt": "1970s sci-fi oracle deck, Discovery One aesthetic, retro-futuristic, cinematic lighting, Tarot card illustration, Queen of Wands. queen of wands, fire element, warm amber ember glow. Rider-Waite symbolic composition reinterpreted in space-mission visual language. Rider-Waite symbolism in space-mission visual language. Thin double-line frame: outer white 2px, inner red 1px, 8px corner brackets like CRT telemetry. Consistent margin on every card.. Palette: void black, panel white frame, HAL red accent. 2:3 vertical. text, watermark, logo, blurry, low quality, duplicate border, inconsistent frame, modern UI, smartphone, anime chibi, gore, nudity, extra fingers, misspelled titles"
+    },
+    {
+      "slug": "king-of-wands",
+      "filename": "king-of-wands.png",
+      "phase": "phase3_minorArcana",
+      "suit": "wands",
+      "rank": "king",
+      "title": "King of Wands",
+      "prompt": "1970s sci-fi oracle deck, Discovery One aesthetic, retro-futuristic, cinematic lighting, Tarot card illustration, King of Wands. king of wands, fire element, warm amber ember glow. Rider-Waite symbolic composition reinterpreted in space-mission visual language. Rider-Waite symbolism in space-mission visual language. Thin double-line frame: outer white 2px, inner red 1px, 8px corner brackets like CRT telemetry. Consistent margin on every card.. Palette: void black, panel white frame, HAL red accent. 2:3 vertical. text, watermark, logo, blurry, low quality, duplicate border, inconsistent frame, modern UI, smartphone, anime chibi, gore, nudity, extra fingers, misspelled titles"
+    },
+    {
+      "slug": "ace-of-cups",
+      "filename": "ace-of-cups.png",
+      "phase": "phase3_minorArcana",
+      "suit": "cups",
+      "rank": "ace",
+      "title": "Ace of Cups",
+      "prompt": "1970s sci-fi oracle deck, Discovery One aesthetic, retro-futuristic, cinematic lighting, Tarot card illustration, Ace of Cups. ace of cups, water element, teal lunar silver fluid. Rider-Waite symbolic composition reinterpreted in space-mission visual language. Rider-Waite symbolism in space-mission visual language. Thin double-line frame: outer white 2px, inner red 1px, 8px corner brackets like CRT telemetry. Consistent margin on every card.. Palette: void black, panel white frame, HAL red accent. 2:3 vertical. text, watermark, logo, blurry, low quality, duplicate border, inconsistent frame, modern UI, smartphone, anime chibi, gore, nudity, extra fingers, misspelled titles"
+    },
+    {
+      "slug": "two-of-cups",
+      "filename": "two-of-cups.png",
+      "phase": "phase3_minorArcana",
+      "suit": "cups",
+      "rank": "two",
+      "title": "Two of Cups",
+      "prompt": "1970s sci-fi oracle deck, Discovery One aesthetic, retro-futuristic, cinematic lighting, Tarot card illustration, Two of Cups. two of cups, water element, teal lunar silver fluid. Rider-Waite symbolic composition reinterpreted in space-mission visual language. Rider-Waite symbolism in space-mission visual language. Thin double-line frame: outer white 2px, inner red 1px, 8px corner brackets like CRT telemetry. Consistent margin on every card.. Palette: void black, panel white frame, HAL red accent. 2:3 vertical. text, watermark, logo, blurry, low quality, duplicate border, inconsistent frame, modern UI, smartphone, anime chibi, gore, nudity, extra fingers, misspelled titles"
+    },
+    {
+      "slug": "three-of-cups",
+      "filename": "three-of-cups.png",
+      "phase": "phase3_minorArcana",
+      "suit": "cups",
+      "rank": "three",
+      "title": "Three of Cups",
+      "prompt": "1970s sci-fi oracle deck, Discovery One aesthetic, retro-futuristic, cinematic lighting, Tarot card illustration, Three of Cups. three of cups, water element, teal lunar silver fluid. Rider-Waite symbolic composition reinterpreted in space-mission visual language. Rider-Waite symbolism in space-mission visual language. Thin double-line frame: outer white 2px, inner red 1px, 8px corner brackets like CRT telemetry. Consistent margin on every card.. Palette: void black, panel white frame, HAL red accent. 2:3 vertical. text, watermark, logo, blurry, low quality, duplicate border, inconsistent frame, modern UI, smartphone, anime chibi, gore, nudity, extra fingers, misspelled titles"
+    },
+    {
+      "slug": "four-of-cups",
+      "filename": "four-of-cups.png",
+      "phase": "phase3_minorArcana",
+      "suit": "cups",
+      "rank": "four",
+      "title": "Four of Cups",
+      "prompt": "1970s sci-fi oracle deck, Discovery One aesthetic, retro-futuristic, cinematic lighting, Tarot card illustration, Four of Cups. four of cups, water element, teal lunar silver fluid. Rider-Waite symbolic composition reinterpreted in space-mission visual language. Rider-Waite symbolism in space-mission visual language. Thin double-line frame: outer white 2px, inner red 1px, 8px corner brackets like CRT telemetry. Consistent margin on every card.. Palette: void black, panel white frame, HAL red accent. 2:3 vertical. text, watermark, logo, blurry, low quality, duplicate border, inconsistent frame, modern UI, smartphone, anime chibi, gore, nudity, extra fingers, misspelled titles"
+    },
+    {
+      "slug": "five-of-cups",
+      "filename": "five-of-cups.png",
+      "phase": "phase3_minorArcana",
+      "suit": "cups",
+      "rank": "five",
+      "title": "Five of Cups",
+      "prompt": "1970s sci-fi oracle deck, Discovery One aesthetic, retro-futuristic, cinematic lighting, Tarot card illustration, Five of Cups. five of cups, water element, teal lunar silver fluid. Rider-Waite symbolic composition reinterpreted in space-mission visual language. Rider-Waite symbolism in space-mission visual language. Thin double-line frame: outer white 2px, inner red 1px, 8px corner brackets like CRT telemetry. Consistent margin on every card.. Palette: void black, panel white frame, HAL red accent. 2:3 vertical. text, watermark, logo, blurry, low quality, duplicate border, inconsistent frame, modern UI, smartphone, anime chibi, gore, nudity, extra fingers, misspelled titles"
+    },
+    {
+      "slug": "six-of-cups",
+      "filename": "six-of-cups.png",
+      "phase": "phase3_minorArcana",
+      "suit": "cups",
+      "rank": "six",
+      "title": "Six of Cups",
+      "prompt": "1970s sci-fi oracle deck, Discovery One aesthetic, retro-futuristic, cinematic lighting, Tarot card illustration, Six of Cups. six of cups, water element, teal lunar silver fluid. Rider-Waite symbolic composition reinterpreted in space-mission visual language. Rider-Waite symbolism in space-mission visual language. Thin double-line frame: outer white 2px, inner red 1px, 8px corner brackets like CRT telemetry. Consistent margin on every card.. Palette: void black, panel white frame, HAL red accent. 2:3 vertical. text, watermark, logo, blurry, low quality, duplicate border, inconsistent frame, modern UI, smartphone, anime chibi, gore, nudity, extra fingers, misspelled titles"
+    },
+    {
+      "slug": "seven-of-cups",
+      "filename": "seven-of-cups.png",
+      "phase": "phase3_minorArcana",
+      "suit": "cups",
+      "rank": "seven",
+      "title": "Seven of Cups",
+      "prompt": "1970s sci-fi oracle deck, Discovery One aesthetic, retro-futuristic, cinematic lighting, Tarot card illustration, Seven of Cups. seven of cups, water element, teal lunar silver fluid. Rider-Waite symbolic composition reinterpreted in space-mission visual language. Rider-Waite symbolism in space-mission visual language. Thin double-line frame: outer white 2px, inner red 1px, 8px corner brackets like CRT telemetry. Consistent margin on every card.. Palette: void black, panel white frame, HAL red accent. 2:3 vertical. text, watermark, logo, blurry, low quality, duplicate border, inconsistent frame, modern UI, smartphone, anime chibi, gore, nudity, extra fingers, misspelled titles"
+    },
+    {
+      "slug": "eight-of-cups",
+      "filename": "eight-of-cups.png",
+      "phase": "phase3_minorArcana",
+      "suit": "cups",
+      "rank": "eight",
+      "title": "Eight of Cups",
+      "prompt": "1970s sci-fi oracle deck, Discovery One aesthetic, retro-futuristic, cinematic lighting, Tarot card illustration, Eight of Cups. eight of cups, water element, teal lunar silver fluid. Rider-Waite symbolic composition reinterpreted in space-mission visual language. Rider-Waite symbolism in space-mission visual language. Thin double-line frame: outer white 2px, inner red 1px, 8px corner brackets like CRT telemetry. Consistent margin on every card.. Palette: void black, panel white frame, HAL red accent. 2:3 vertical. text, watermark, logo, blurry, low quality, duplicate border, inconsistent frame, modern UI, smartphone, anime chibi, gore, nudity, extra fingers, misspelled titles"
+    },
+    {
+      "slug": "nine-of-cups",
+      "filename": "nine-of-cups.png",
+      "phase": "phase3_minorArcana",
+      "suit": "cups",
+      "rank": "nine",
+      "title": "Nine of Cups",
+      "prompt": "1970s sci-fi oracle deck, Discovery One aesthetic, retro-futuristic, cinematic lighting, Tarot card illustration, Nine of Cups. nine of cups, water element, teal lunar silver fluid. Rider-Waite symbolic composition reinterpreted in space-mission visual language. Rider-Waite symbolism in space-mission visual language. Thin double-line frame: outer white 2px, inner red 1px, 8px corner brackets like CRT telemetry. Consistent margin on every card.. Palette: void black, panel white frame, HAL red accent. 2:3 vertical. text, watermark, logo, blurry, low quality, duplicate border, inconsistent frame, modern UI, smartphone, anime chibi, gore, nudity, extra fingers, misspelled titles"
+    },
+    {
+      "slug": "ten-of-cups",
+      "filename": "ten-of-cups.png",
+      "phase": "phase3_minorArcana",
+      "suit": "cups",
+      "rank": "ten",
+      "title": "Ten of Cups",
+      "prompt": "1970s sci-fi oracle deck, Discovery One aesthetic, retro-futuristic, cinematic lighting, Tarot card illustration, Ten of Cups. ten of cups, water element, teal lunar silver fluid. Rider-Waite symbolic composition reinterpreted in space-mission visual language. Rider-Waite symbolism in space-mission visual language. Thin double-line frame: outer white 2px, inner red 1px, 8px corner brackets like CRT telemetry. Consistent margin on every card.. Palette: void black, panel white frame, HAL red accent. 2:3 vertical. text, watermark, logo, blurry, low quality, duplicate border, inconsistent frame, modern UI, smartphone, anime chibi, gore, nudity, extra fingers, misspelled titles"
+    },
+    {
+      "slug": "page-of-cups",
+      "filename": "page-of-cups.png",
+      "phase": "phase3_minorArcana",
+      "suit": "cups",
+      "rank": "page",
+      "title": "Page of Cups",
+      "prompt": "1970s sci-fi oracle deck, Discovery One aesthetic, retro-futuristic, cinematic lighting, Tarot card illustration, Page of Cups. page of cups, water element, teal lunar silver fluid. Rider-Waite symbolic composition reinterpreted in space-mission visual language. Rider-Waite symbolism in space-mission visual language. Thin double-line frame: outer white 2px, inner red 1px, 8px corner brackets like CRT telemetry. Consistent margin on every card.. Palette: void black, panel white frame, HAL red accent. 2:3 vertical. text, watermark, logo, blurry, low quality, duplicate border, inconsistent frame, modern UI, smartphone, anime chibi, gore, nudity, extra fingers, misspelled titles"
+    },
+    {
+      "slug": "knight-of-cups",
+      "filename": "knight-of-cups.png",
+      "phase": "phase3_minorArcana",
+      "suit": "cups",
+      "rank": "knight",
+      "title": "Knight of Cups",
+      "prompt": "1970s sci-fi oracle deck, Discovery One aesthetic, retro-futuristic, cinematic lighting, Tarot card illustration, Knight of Cups. knight of cups, water element, teal lunar silver fluid. Rider-Waite symbolic composition reinterpreted in space-mission visual language. Rider-Waite symbolism in space-mission visual language. Thin double-line frame: outer white 2px, inner red 1px, 8px corner brackets like CRT telemetry. Consistent margin on every card.. Palette: void black, panel white frame, HAL red accent. 2:3 vertical. text, watermark, logo, blurry, low quality, duplicate border, inconsistent frame, modern UI, smartphone, anime chibi, gore, nudity, extra fingers, misspelled titles"
+    },
+    {
+      "slug": "queen-of-cups",
+      "filename": "queen-of-cups.png",
+      "phase": "phase3_minorArcana",
+      "suit": "cups",
+      "rank": "queen",
+      "title": "Queen of Cups",
+      "prompt": "1970s sci-fi oracle deck, Discovery One aesthetic, retro-futuristic, cinematic lighting, Tarot card illustration, Queen of Cups. queen of cups, water element, teal lunar silver fluid. Rider-Waite symbolic composition reinterpreted in space-mission visual language. Rider-Waite symbolism in space-mission visual language. Thin double-line frame: outer white 2px, inner red 1px, 8px corner brackets like CRT telemetry. Consistent margin on every card.. Palette: void black, panel white frame, HAL red accent. 2:3 vertical. text, watermark, logo, blurry, low quality, duplicate border, inconsistent frame, modern UI, smartphone, anime chibi, gore, nudity, extra fingers, misspelled titles"
+    },
+    {
+      "slug": "king-of-cups",
+      "filename": "king-of-cups.png",
+      "phase": "phase3_minorArcana",
+      "suit": "cups",
+      "rank": "king",
+      "title": "King of Cups",
+      "prompt": "1970s sci-fi oracle deck, Discovery One aesthetic, retro-futuristic, cinematic lighting, Tarot card illustration, King of Cups. king of cups, water element, teal lunar silver fluid. Rider-Waite symbolic composition reinterpreted in space-mission visual language. Rider-Waite symbolism in space-mission visual language. Thin double-line frame: outer white 2px, inner red 1px, 8px corner brackets like CRT telemetry. Consistent margin on every card.. Palette: void black, panel white frame, HAL red accent. 2:3 vertical. text, watermark, logo, blurry, low quality, duplicate border, inconsistent frame, modern UI, smartphone, anime chibi, gore, nudity, extra fingers, misspelled titles"
+    },
+    {
+      "slug": "ace-of-swords",
+      "filename": "ace-of-swords.png",
+      "phase": "phase3_minorArcana",
+      "suit": "swords",
+      "rank": "ace",
+      "title": "Ace of Swords",
+      "prompt": "1970s sci-fi oracle deck, Discovery One aesthetic, retro-futuristic, cinematic lighting, Tarot card illustration, Ace of Swords. ace of swords, air element, cold grey sharp geometry. Rider-Waite symbolic composition reinterpreted in space-mission visual language. Rider-Waite symbolism in space-mission visual language. Thin double-line frame: outer white 2px, inner red 1px, 8px corner brackets like CRT telemetry. Consistent margin on every card.. Palette: void black, panel white frame, HAL red accent. 2:3 vertical. text, watermark, logo, blurry, low quality, duplicate border, inconsistent frame, modern UI, smartphone, anime chibi, gore, nudity, extra fingers, misspelled titles"
+    },
+    {
+      "slug": "two-of-swords",
+      "filename": "two-of-swords.png",
+      "phase": "phase3_minorArcana",
+      "suit": "swords",
+      "rank": "two",
+      "title": "Two of Swords",
+      "prompt": "1970s sci-fi oracle deck, Discovery One aesthetic, retro-futuristic, cinematic lighting, Tarot card illustration, Two of Swords. two of swords, air element, cold grey sharp geometry. Rider-Waite symbolic composition reinterpreted in space-mission visual language. Rider-Waite symbolism in space-mission visual language. Thin double-line frame: outer white 2px, inner red 1px, 8px corner brackets like CRT telemetry. Consistent margin on every card.. Palette: void black, panel white frame, HAL red accent. 2:3 vertical. text, watermark, logo, blurry, low quality, duplicate border, inconsistent frame, modern UI, smartphone, anime chibi, gore, nudity, extra fingers, misspelled titles"
+    },
+    {
+      "slug": "three-of-swords",
+      "filename": "three-of-swords.png",
+      "phase": "phase3_minorArcana",
+      "suit": "swords",
+      "rank": "three",
+      "title": "Three of Swords",
+      "prompt": "1970s sci-fi oracle deck, Discovery One aesthetic, retro-futuristic, cinematic lighting, Tarot card illustration, Three of Swords. three of swords, air element, cold grey sharp geometry. Rider-Waite symbolic composition reinterpreted in space-mission visual language. Rider-Waite symbolism in space-mission visual language. Thin double-line frame: outer white 2px, inner red 1px, 8px corner brackets like CRT telemetry. Consistent margin on every card.. Palette: void black, panel white frame, HAL red accent. 2:3 vertical. text, watermark, logo, blurry, low quality, duplicate border, inconsistent frame, modern UI, smartphone, anime chibi, gore, nudity, extra fingers, misspelled titles"
+    },
+    {
+      "slug": "four-of-swords",
+      "filename": "four-of-swords.png",
+      "phase": "phase3_minorArcana",
+      "suit": "swords",
+      "rank": "four",
+      "title": "Four of Swords",
+      "prompt": "1970s sci-fi oracle deck, Discovery One aesthetic, retro-futuristic, cinematic lighting, Tarot card illustration, Four of Swords. four of swords, air element, cold grey sharp geometry. Rider-Waite symbolic composition reinterpreted in space-mission visual language. Rider-Waite symbolism in space-mission visual language. Thin double-line frame: outer white 2px, inner red 1px, 8px corner brackets like CRT telemetry. Consistent margin on every card.. Palette: void black, panel white frame, HAL red accent. 2:3 vertical. text, watermark, logo, blurry, low quality, duplicate border, inconsistent frame, modern UI, smartphone, anime chibi, gore, nudity, extra fingers, misspelled titles"
+    },
+    {
+      "slug": "five-of-swords",
+      "filename": "five-of-swords.png",
+      "phase": "phase3_minorArcana",
+      "suit": "swords",
+      "rank": "five",
+      "title": "Five of Swords",
+      "prompt": "1970s sci-fi oracle deck, Discovery One aesthetic, retro-futuristic, cinematic lighting, Tarot card illustration, Five of Swords. five of swords, air element, cold grey sharp geometry. Rider-Waite symbolic composition reinterpreted in space-mission visual language. Rider-Waite symbolism in space-mission visual language. Thin double-line frame: outer white 2px, inner red 1px, 8px corner brackets like CRT telemetry. Consistent margin on every card.. Palette: void black, panel white frame, HAL red accent. 2:3 vertical. text, watermark, logo, blurry, low quality, duplicate border, inconsistent frame, modern UI, smartphone, anime chibi, gore, nudity, extra fingers, misspelled titles"
+    },
+    {
+      "slug": "six-of-swords",
+      "filename": "six-of-swords.png",
+      "phase": "phase3_minorArcana",
+      "suit": "swords",
+      "rank": "six",
+      "title": "Six of Swords",
+      "prompt": "1970s sci-fi oracle deck, Discovery One aesthetic, retro-futuristic, cinematic lighting, Tarot card illustration, Six of Swords. six of swords, air element, cold grey sharp geometry. Rider-Waite symbolic composition reinterpreted in space-mission visual language. Rider-Waite symbolism in space-mission visual language. Thin double-line frame: outer white 2px, inner red 1px, 8px corner brackets like CRT telemetry. Consistent margin on every card.. Palette: void black, panel white frame, HAL red accent. 2:3 vertical. text, watermark, logo, blurry, low quality, duplicate border, inconsistent frame, modern UI, smartphone, anime chibi, gore, nudity, extra fingers, misspelled titles"
+    },
+    {
+      "slug": "seven-of-swords",
+      "filename": "seven-of-swords.png",
+      "phase": "phase3_minorArcana",
+      "suit": "swords",
+      "rank": "seven",
+      "title": "Seven of Swords",
+      "prompt": "1970s sci-fi oracle deck, Discovery One aesthetic, retro-futuristic, cinematic lighting, Tarot card illustration, Seven of Swords. seven of swords, air element, cold grey sharp geometry. Rider-Waite symbolic composition reinterpreted in space-mission visual language. Rider-Waite symbolism in space-mission visual language. Thin double-line frame: outer white 2px, inner red 1px, 8px corner brackets like CRT telemetry. Consistent margin on every card.. Palette: void black, panel white frame, HAL red accent. 2:3 vertical. text, watermark, logo, blurry, low quality, duplicate border, inconsistent frame, modern UI, smartphone, anime chibi, gore, nudity, extra fingers, misspelled titles"
+    },
+    {
+      "slug": "eight-of-swords",
+      "filename": "eight-of-swords.png",
+      "phase": "phase3_minorArcana",
+      "suit": "swords",
+      "rank": "eight",
+      "title": "Eight of Swords",
+      "prompt": "1970s sci-fi oracle deck, Discovery One aesthetic, retro-futuristic, cinematic lighting, Tarot card illustration, Eight of Swords. eight of swords, air element, cold grey sharp geometry. Rider-Waite symbolic composition reinterpreted in space-mission visual language. Rider-Waite symbolism in space-mission visual language. Thin double-line frame: outer white 2px, inner red 1px, 8px corner brackets like CRT telemetry. Consistent margin on every card.. Palette: void black, panel white frame, HAL red accent. 2:3 vertical. text, watermark, logo, blurry, low quality, duplicate border, inconsistent frame, modern UI, smartphone, anime chibi, gore, nudity, extra fingers, misspelled titles"
+    },
+    {
+      "slug": "nine-of-swords",
+      "filename": "nine-of-swords.png",
+      "phase": "phase3_minorArcana",
+      "suit": "swords",
+      "rank": "nine",
+      "title": "Nine of Swords",
+      "prompt": "1970s sci-fi oracle deck, Discovery One aesthetic, retro-futuristic, cinematic lighting, Tarot card illustration, Nine of Swords. nine of swords, air element, cold grey sharp geometry. Rider-Waite symbolic composition reinterpreted in space-mission visual language. Rider-Waite symbolism in space-mission visual language. Thin double-line frame: outer white 2px, inner red 1px, 8px corner brackets like CRT telemetry. Consistent margin on every card.. Palette: void black, panel white frame, HAL red accent. 2:3 vertical. text, watermark, logo, blurry, low quality, duplicate border, inconsistent frame, modern UI, smartphone, anime chibi, gore, nudity, extra fingers, misspelled titles"
+    },
+    {
+      "slug": "ten-of-swords",
+      "filename": "ten-of-swords.png",
+      "phase": "phase3_minorArcana",
+      "suit": "swords",
+      "rank": "ten",
+      "title": "Ten of Swords",
+      "prompt": "1970s sci-fi oracle deck, Discovery One aesthetic, retro-futuristic, cinematic lighting, Tarot card illustration, Ten of Swords. ten of swords, air element, cold grey sharp geometry. Rider-Waite symbolic composition reinterpreted in space-mission visual language. Rider-Waite symbolism in space-mission visual language. Thin double-line frame: outer white 2px, inner red 1px, 8px corner brackets like CRT telemetry. Consistent margin on every card.. Palette: void black, panel white frame, HAL red accent. 2:3 vertical. text, watermark, logo, blurry, low quality, duplicate border, inconsistent frame, modern UI, smartphone, anime chibi, gore, nudity, extra fingers, misspelled titles"
+    },
+    {
+      "slug": "page-of-swords",
+      "filename": "page-of-swords.png",
+      "phase": "phase3_minorArcana",
+      "suit": "swords",
+      "rank": "page",
+      "title": "Page of Swords",
+      "prompt": "1970s sci-fi oracle deck, Discovery One aesthetic, retro-futuristic, cinematic lighting, Tarot card illustration, Page of Swords. page of swords, air element, cold grey sharp geometry. Rider-Waite symbolic composition reinterpreted in space-mission visual language. Rider-Waite symbolism in space-mission visual language. Thin double-line frame: outer white 2px, inner red 1px, 8px corner brackets like CRT telemetry. Consistent margin on every card.. Palette: void black, panel white frame, HAL red accent. 2:3 vertical. text, watermark, logo, blurry, low quality, duplicate border, inconsistent frame, modern UI, smartphone, anime chibi, gore, nudity, extra fingers, misspelled titles"
+    },
+    {
+      "slug": "knight-of-swords",
+      "filename": "knight-of-swords.png",
+      "phase": "phase3_minorArcana",
+      "suit": "swords",
+      "rank": "knight",
+      "title": "Knight of Swords",
+      "prompt": "1970s sci-fi oracle deck, Discovery One aesthetic, retro-futuristic, cinematic lighting, Tarot card illustration, Knight of Swords. knight of swords, air element, cold grey sharp geometry. Rider-Waite symbolic composition reinterpreted in space-mission visual language. Rider-Waite symbolism in space-mission visual language. Thin double-line frame: outer white 2px, inner red 1px, 8px corner brackets like CRT telemetry. Consistent margin on every card.. Palette: void black, panel white frame, HAL red accent. 2:3 vertical. text, watermark, logo, blurry, low quality, duplicate border, inconsistent frame, modern UI, smartphone, anime chibi, gore, nudity, extra fingers, misspelled titles"
+    },
+    {
+      "slug": "queen-of-swords",
+      "filename": "queen-of-swords.png",
+      "phase": "phase3_minorArcana",
+      "suit": "swords",
+      "rank": "queen",
+      "title": "Queen of Swords",
+      "prompt": "1970s sci-fi oracle deck, Discovery One aesthetic, retro-futuristic, cinematic lighting, Tarot card illustration, Queen of Swords. queen of swords, air element, cold grey sharp geometry. Rider-Waite symbolic composition reinterpreted in space-mission visual language. Rider-Waite symbolism in space-mission visual language. Thin double-line frame: outer white 2px, inner red 1px, 8px corner brackets like CRT telemetry. Consistent margin on every card.. Palette: void black, panel white frame, HAL red accent. 2:3 vertical. text, watermark, logo, blurry, low quality, duplicate border, inconsistent frame, modern UI, smartphone, anime chibi, gore, nudity, extra fingers, misspelled titles"
+    },
+    {
+      "slug": "king-of-swords",
+      "filename": "king-of-swords.png",
+      "phase": "phase3_minorArcana",
+      "suit": "swords",
+      "rank": "king",
+      "title": "King of Swords",
+      "prompt": "1970s sci-fi oracle deck, Discovery One aesthetic, retro-futuristic, cinematic lighting, Tarot card illustration, King of Swords. king of swords, air element, cold grey sharp geometry. Rider-Waite symbolic composition reinterpreted in space-mission visual language. Rider-Waite symbolism in space-mission visual language. Thin double-line frame: outer white 2px, inner red 1px, 8px corner brackets like CRT telemetry. Consistent margin on every card.. Palette: void black, panel white frame, HAL red accent. 2:3 vertical. text, watermark, logo, blurry, low quality, duplicate border, inconsistent frame, modern UI, smartphone, anime chibi, gore, nudity, extra fingers, misspelled titles"
+    },
+    {
+      "slug": "ace-of-pentacles",
+      "filename": "ace-of-pentacles.png",
+      "phase": "phase3_minorArcana",
+      "suit": "pentacles",
+      "rank": "ace",
+      "title": "Ace of Pentacles",
+      "prompt": "1970s sci-fi oracle deck, Discovery One aesthetic, retro-futuristic, cinematic lighting, Tarot card illustration, Ace of Pentacles. ace of pentacles, earth element, copper circuit earth tones. Rider-Waite symbolic composition reinterpreted in space-mission visual language. Rider-Waite symbolism in space-mission visual language. Thin double-line frame: outer white 2px, inner red 1px, 8px corner brackets like CRT telemetry. Consistent margin on every card.. Palette: void black, panel white frame, HAL red accent. 2:3 vertical. text, watermark, logo, blurry, low quality, duplicate border, inconsistent frame, modern UI, smartphone, anime chibi, gore, nudity, extra fingers, misspelled titles"
+    },
+    {
+      "slug": "two-of-pentacles",
+      "filename": "two-of-pentacles.png",
+      "phase": "phase3_minorArcana",
+      "suit": "pentacles",
+      "rank": "two",
+      "title": "Two of Pentacles",
+      "prompt": "1970s sci-fi oracle deck, Discovery One aesthetic, retro-futuristic, cinematic lighting, Tarot card illustration, Two of Pentacles. two of pentacles, earth element, copper circuit earth tones. Rider-Waite symbolic composition reinterpreted in space-mission visual language. Rider-Waite symbolism in space-mission visual language. Thin double-line frame: outer white 2px, inner red 1px, 8px corner brackets like CRT telemetry. Consistent margin on every card.. Palette: void black, panel white frame, HAL red accent. 2:3 vertical. text, watermark, logo, blurry, low quality, duplicate border, inconsistent frame, modern UI, smartphone, anime chibi, gore, nudity, extra fingers, misspelled titles"
+    },
+    {
+      "slug": "three-of-pentacles",
+      "filename": "three-of-pentacles.png",
+      "phase": "phase3_minorArcana",
+      "suit": "pentacles",
+      "rank": "three",
+      "title": "Three of Pentacles",
+      "prompt": "1970s sci-fi oracle deck, Discovery One aesthetic, retro-futuristic, cinematic lighting, Tarot card illustration, Three of Pentacles. three of pentacles, earth element, copper circuit earth tones. Rider-Waite symbolic composition reinterpreted in space-mission visual language. Rider-Waite symbolism in space-mission visual language. Thin double-line frame: outer white 2px, inner red 1px, 8px corner brackets like CRT telemetry. Consistent margin on every card.. Palette: void black, panel white frame, HAL red accent. 2:3 vertical. text, watermark, logo, blurry, low quality, duplicate border, inconsistent frame, modern UI, smartphone, anime chibi, gore, nudity, extra fingers, misspelled titles"
+    },
+    {
+      "slug": "four-of-pentacles",
+      "filename": "four-of-pentacles.png",
+      "phase": "phase3_minorArcana",
+      "suit": "pentacles",
+      "rank": "four",
+      "title": "Four of Pentacles",
+      "prompt": "1970s sci-fi oracle deck, Discovery One aesthetic, retro-futuristic, cinematic lighting, Tarot card illustration, Four of Pentacles. four of pentacles, earth element, copper circuit earth tones. Rider-Waite symbolic composition reinterpreted in space-mission visual language. Rider-Waite symbolism in space-mission visual language. Thin double-line frame: outer white 2px, inner red 1px, 8px corner brackets like CRT telemetry. Consistent margin on every card.. Palette: void black, panel white frame, HAL red accent. 2:3 vertical. text, watermark, logo, blurry, low quality, duplicate border, inconsistent frame, modern UI, smartphone, anime chibi, gore, nudity, extra fingers, misspelled titles"
+    },
+    {
+      "slug": "five-of-pentacles",
+      "filename": "five-of-pentacles.png",
+      "phase": "phase3_minorArcana",
+      "suit": "pentacles",
+      "rank": "five",
+      "title": "Five of Pentacles",
+      "prompt": "1970s sci-fi oracle deck, Discovery One aesthetic, retro-futuristic, cinematic lighting, Tarot card illustration, Five of Pentacles. five of pentacles, earth element, copper circuit earth tones. Rider-Waite symbolic composition reinterpreted in space-mission visual language. Rider-Waite symbolism in space-mission visual language. Thin double-line frame: outer white 2px, inner red 1px, 8px corner brackets like CRT telemetry. Consistent margin on every card.. Palette: void black, panel white frame, HAL red accent. 2:3 vertical. text, watermark, logo, blurry, low quality, duplicate border, inconsistent frame, modern UI, smartphone, anime chibi, gore, nudity, extra fingers, misspelled titles"
+    },
+    {
+      "slug": "six-of-pentacles",
+      "filename": "six-of-pentacles.png",
+      "phase": "phase3_minorArcana",
+      "suit": "pentacles",
+      "rank": "six",
+      "title": "Six of Pentacles",
+      "prompt": "1970s sci-fi oracle deck, Discovery One aesthetic, retro-futuristic, cinematic lighting, Tarot card illustration, Six of Pentacles. six of pentacles, earth element, copper circuit earth tones. Rider-Waite symbolic composition reinterpreted in space-mission visual language. Rider-Waite symbolism in space-mission visual language. Thin double-line frame: outer white 2px, inner red 1px, 8px corner brackets like CRT telemetry. Consistent margin on every card.. Palette: void black, panel white frame, HAL red accent. 2:3 vertical. text, watermark, logo, blurry, low quality, duplicate border, inconsistent frame, modern UI, smartphone, anime chibi, gore, nudity, extra fingers, misspelled titles"
+    },
+    {
+      "slug": "seven-of-pentacles",
+      "filename": "seven-of-pentacles.png",
+      "phase": "phase3_minorArcana",
+      "suit": "pentacles",
+      "rank": "seven",
+      "title": "Seven of Pentacles",
+      "prompt": "1970s sci-fi oracle deck, Discovery One aesthetic, retro-futuristic, cinematic lighting, Tarot card illustration, Seven of Pentacles. seven of pentacles, earth element, copper circuit earth tones. Rider-Waite symbolic composition reinterpreted in space-mission visual language. Rider-Waite symbolism in space-mission visual language. Thin double-line frame: outer white 2px, inner red 1px, 8px corner brackets like CRT telemetry. Consistent margin on every card.. Palette: void black, panel white frame, HAL red accent. 2:3 vertical. text, watermark, logo, blurry, low quality, duplicate border, inconsistent frame, modern UI, smartphone, anime chibi, gore, nudity, extra fingers, misspelled titles"
+    },
+    {
+      "slug": "eight-of-pentacles",
+      "filename": "eight-of-pentacles.png",
+      "phase": "phase3_minorArcana",
+      "suit": "pentacles",
+      "rank": "eight",
+      "title": "Eight of Pentacles",
+      "prompt": "1970s sci-fi oracle deck, Discovery One aesthetic, retro-futuristic, cinematic lighting, Tarot card illustration, Eight of Pentacles. eight of pentacles, earth element, copper circuit earth tones. Rider-Waite symbolic composition reinterpreted in space-mission visual language. Rider-Waite symbolism in space-mission visual language. Thin double-line frame: outer white 2px, inner red 1px, 8px corner brackets like CRT telemetry. Consistent margin on every card.. Palette: void black, panel white frame, HAL red accent. 2:3 vertical. text, watermark, logo, blurry, low quality, duplicate border, inconsistent frame, modern UI, smartphone, anime chibi, gore, nudity, extra fingers, misspelled titles"
+    },
+    {
+      "slug": "nine-of-pentacles",
+      "filename": "nine-of-pentacles.png",
+      "phase": "phase3_minorArcana",
+      "suit": "pentacles",
+      "rank": "nine",
+      "title": "Nine of Pentacles",
+      "prompt": "1970s sci-fi oracle deck, Discovery One aesthetic, retro-futuristic, cinematic lighting, Tarot card illustration, Nine of Pentacles. nine of pentacles, earth element, copper circuit earth tones. Rider-Waite symbolic composition reinterpreted in space-mission visual language. Rider-Waite symbolism in space-mission visual language. Thin double-line frame: outer white 2px, inner red 1px, 8px corner brackets like CRT telemetry. Consistent margin on every card.. Palette: void black, panel white frame, HAL red accent. 2:3 vertical. text, watermark, logo, blurry, low quality, duplicate border, inconsistent frame, modern UI, smartphone, anime chibi, gore, nudity, extra fingers, misspelled titles"
+    },
+    {
+      "slug": "ten-of-pentacles",
+      "filename": "ten-of-pentacles.png",
+      "phase": "phase3_minorArcana",
+      "suit": "pentacles",
+      "rank": "ten",
+      "title": "Ten of Pentacles",
+      "prompt": "1970s sci-fi oracle deck, Discovery One aesthetic, retro-futuristic, cinematic lighting, Tarot card illustration, Ten of Pentacles. ten of pentacles, earth element, copper circuit earth tones. Rider-Waite symbolic composition reinterpreted in space-mission visual language. Rider-Waite symbolism in space-mission visual language. Thin double-line frame: outer white 2px, inner red 1px, 8px corner brackets like CRT telemetry. Consistent margin on every card.. Palette: void black, panel white frame, HAL red accent. 2:3 vertical. text, watermark, logo, blurry, low quality, duplicate border, inconsistent frame, modern UI, smartphone, anime chibi, gore, nudity, extra fingers, misspelled titles"
+    },
+    {
+      "slug": "page-of-pentacles",
+      "filename": "page-of-pentacles.png",
+      "phase": "phase3_minorArcana",
+      "suit": "pentacles",
+      "rank": "page",
+      "title": "Page of Pentacles",
+      "prompt": "1970s sci-fi oracle deck, Discovery One aesthetic, retro-futuristic, cinematic lighting, Tarot card illustration, Page of Pentacles. page of pentacles, earth element, copper circuit earth tones. Rider-Waite symbolic composition reinterpreted in space-mission visual language. Rider-Waite symbolism in space-mission visual language. Thin double-line frame: outer white 2px, inner red 1px, 8px corner brackets like CRT telemetry. Consistent margin on every card.. Palette: void black, panel white frame, HAL red accent. 2:3 vertical. text, watermark, logo, blurry, low quality, duplicate border, inconsistent frame, modern UI, smartphone, anime chibi, gore, nudity, extra fingers, misspelled titles"
+    },
+    {
+      "slug": "knight-of-pentacles",
+      "filename": "knight-of-pentacles.png",
+      "phase": "phase3_minorArcana",
+      "suit": "pentacles",
+      "rank": "knight",
+      "title": "Knight of Pentacles",
+      "prompt": "1970s sci-fi oracle deck, Discovery One aesthetic, retro-futuristic, cinematic lighting, Tarot card illustration, Knight of Pentacles. knight of pentacles, earth element, copper circuit earth tones. Rider-Waite symbolic composition reinterpreted in space-mission visual language. Rider-Waite symbolism in space-mission visual language. Thin double-line frame: outer white 2px, inner red 1px, 8px corner brackets like CRT telemetry. Consistent margin on every card.. Palette: void black, panel white frame, HAL red accent. 2:3 vertical. text, watermark, logo, blurry, low quality, duplicate border, inconsistent frame, modern UI, smartphone, anime chibi, gore, nudity, extra fingers, misspelled titles"
+    },
+    {
+      "slug": "queen-of-pentacles",
+      "filename": "queen-of-pentacles.png",
+      "phase": "phase3_minorArcana",
+      "suit": "pentacles",
+      "rank": "queen",
+      "title": "Queen of Pentacles",
+      "prompt": "1970s sci-fi oracle deck, Discovery One aesthetic, retro-futuristic, cinematic lighting, Tarot card illustration, Queen of Pentacles. queen of pentacles, earth element, copper circuit earth tones. Rider-Waite symbolic composition reinterpreted in space-mission visual language. Rider-Waite symbolism in space-mission visual language. Thin double-line frame: outer white 2px, inner red 1px, 8px corner brackets like CRT telemetry. Consistent margin on every card.. Palette: void black, panel white frame, HAL red accent. 2:3 vertical. text, watermark, logo, blurry, low quality, duplicate border, inconsistent frame, modern UI, smartphone, anime chibi, gore, nudity, extra fingers, misspelled titles"
+    },
+    {
+      "slug": "king-of-pentacles",
+      "filename": "king-of-pentacles.png",
+      "phase": "phase3_minorArcana",
+      "suit": "pentacles",
+      "rank": "king",
+      "title": "King of Pentacles",
+      "prompt": "1970s sci-fi oracle deck, Discovery One aesthetic, retro-futuristic, cinematic lighting, Tarot card illustration, King of Pentacles. king of pentacles, earth element, copper circuit earth tones. Rider-Waite symbolic composition reinterpreted in space-mission visual language. Rider-Waite symbolism in space-mission visual language. Thin double-line frame: outer white 2px, inner red 1px, 8px corner brackets like CRT telemetry. Consistent margin on every card.. Palette: void black, panel white frame, HAL red accent. 2:3 vertical. text, watermark, logo, blurry, low quality, duplicate border, inconsistent frame, modern UI, smartphone, anime chibi, gore, nudity, extra fingers, misspelled titles"
+    }
+  ]
+}

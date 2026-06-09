@@ -5,10 +5,104 @@ import {
   type InsertTarotCard, 
   type Reading, 
   type InsertReading,
+  type SpreadReading,
+  type InsertSpreadReading,
   type CustomUpload,
   type InsertCustomUpload 
 } from "@shared/schema";
 import { randomUUID } from "crypto";
+import fs from "fs";
+import path from "path";
+import { getRiderWaiteMeaning } from "./rider-waite-seed";
+
+const CARD_FOLDER = path.resolve(import.meta.dirname, "..", "Cards-png");
+const DEFAULT_CARD_BACK = "/Cards-png/Roses_and_Lilies_back.jpg";
+
+function formatCardNameFromFilename(filename: string) {
+  return filename
+    .replace(/\.(png|jpg|jpeg|webp)$/i, "")
+    .split("-")
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+}
+
+function parseCardMetadata(filename: string) {
+  const base = filename.replace(/\.(png|jpg|jpeg|webp)$/i, "").toLowerCase();
+  const normalized = base.replace(/_/g, "-");
+
+  const majorArcanaNumbers: Record<string, number> = {
+    "the-fool": 0,
+    "the-magician": 1,
+    "the-high-priestess": 2,
+    "the-empress": 3,
+    "the-emperor": 4,
+    "the-hierophant": 5,
+    "the-lovers": 6,
+    "the-chariot": 7,
+    strength: 8,
+    "the-hermit": 9,
+    "wheel-of-fortune": 10,
+    justice: 11,
+    "the-hanged-man": 12,
+    death: 13,
+    temperance: 14,
+    "the-devil": 15,
+    "the-tower": 16,
+    "the-star": 17,
+    "the-moon": 18,
+    "the-sun": 19,
+    judgement: 20,
+    judgment: 20,
+    "the-world": 21,
+  };
+
+  if (majorArcanaNumbers[normalized] !== undefined) {
+    return {
+      arcana: "major" as const,
+      suit: null,
+      number: majorArcanaNumbers[normalized],
+      name: formatCardNameFromFilename(filename),
+    };
+  }
+
+  const minorMatch = normalized.match(
+    /^(ace|two|three|four|five|six|seven|eight|nine|ten|page|knight|queen|king)-of-(wands|cups|swords|pentacles)$/,
+  );
+
+  if (minorMatch) {
+    const [, rank, suit] = minorMatch;
+    const rankToNumber: Record<string, number> = {
+      ace: 1,
+      two: 2,
+      three: 3,
+      four: 4,
+      five: 5,
+      six: 6,
+      seven: 7,
+      eight: 8,
+      nine: 9,
+      ten: 10,
+      page: 11,
+      knight: 12,
+      queen: 13,
+      king: 14,
+    };
+
+    return {
+      arcana: "minor" as const,
+      suit,
+      number: rankToNumber[rank] ?? null,
+      name: formatCardNameFromFilename(filename),
+    };
+  }
+
+  return {
+    arcana: "major" as const,
+    suit: null,
+    number: null,
+    name: formatCardNameFromFilename(filename),
+  };
+}
 
 export interface IStorage {
   // Deck operations
@@ -29,89 +123,77 @@ export interface IStorage {
   getRecentReadings(limit: number): Promise<Reading[]>;
   createReading(reading: InsertReading): Promise<Reading>;
 
+  // Full spread reading history
+  getRecentSpreadReadings(limit: number): Promise<SpreadReading[]>;
+  createSpreadReading(reading: InsertSpreadReading): Promise<SpreadReading>;
+
   // Custom upload operations
   getUploadsByDeck(deckId: string): Promise<CustomUpload[]>;
   createUpload(upload: InsertCustomUpload): Promise<CustomUpload>;
   deleteUpload(id: string): Promise<boolean>;
 }
 
+function asStringArray(value: unknown): string[] | null {
+  if (!Array.isArray(value)) return null;
+  return value.filter((v): v is string => typeof v === "string");
+}
+
 export class MemStorage implements IStorage {
   private decks: Map<string, Deck>;
   private tarotCards: Map<string, TarotCard>;
   private readings: Map<string, Reading>;
+  private spreadReadings: Map<string, SpreadReading>;
   private customUploads: Map<string, CustomUpload>;
 
   constructor() {
     this.decks = new Map();
     this.tarotCards = new Map();
     this.readings = new Map();
+    this.spreadReadings = new Map();
     this.customUploads = new Map();
     this.initializeDefaultData();
   }
 
   private initializeDefaultData() {
-    // Create default Rider-Waite deck
+    // Create default Rider-Waite deck from local Cards-png files.
     const defaultDeckId = randomUUID();
     const defaultDeck: Deck = {
       id: defaultDeckId,
-      name: "Rider-Waite Classic",
-      description: "The traditional and most widely recognized tarot deck with rich symbolism and detailed artwork.",
+      name: "Rider-Waite-Smith",
+      description: "Loaded from local Cards-png folder.",
       theme: "classic",
-      cardBackImageUrl: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=600",
+      cardBackImageUrl: DEFAULT_CARD_BACK,
       isCustom: false,
       createdAt: new Date(),
     };
     this.decks.set(defaultDeckId, defaultDeck);
 
-    // Add complete major arcana cards
-    const majorArcanaCards = [
-      { name: "The Fool", number: 0, uprightMeaning: "New beginnings, innocence, spontaneity, and a free spirit. The Fool represents the start of a journey and the courage to step into the unknown.", keywords: ["New beginnings", "Innocence", "Adventure", "Trust"], imageUrl: "https://images.unsplash.com/photo-1551029506-0807df4e2031?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=600" },
-      { name: "The Magician", number: 1, uprightMeaning: "Manifestation, resourcefulness, power, and inspired action. The Magician represents the ability to turn dreams into reality.", keywords: ["Manifestation", "Power", "Skill", "Concentration"], imageUrl: "https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=600" },
-      { name: "The High Priestess", number: 2, uprightMeaning: "Intuition, sacred knowledge, divine feminine, and the subconscious mind. She represents inner wisdom and mysteries.", keywords: ["Intuition", "Mystery", "Subconscious", "Wisdom"], imageUrl: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=600" },
-      { name: "The Empress", number: 3, uprightMeaning: "Fertility, femininity, beauty, nature, and abundance. The Empress represents motherhood and nurturing.", keywords: ["Fertility", "Abundance", "Nature", "Nurturing"], imageUrl: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=600" },
-      { name: "The Emperor", number: 4, uprightMeaning: "Authority, father-figure, structure, and solid foundation. The Emperor represents leadership and control.", keywords: ["Authority", "Leadership", "Structure", "Control"], imageUrl: "https://images.unsplash.com/photo-1551029506-0807df4e2031?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=600" }
-    ];
+    const supported = [".png", ".jpg", ".jpeg", ".webp"];
+    const filenames = fs.existsSync(CARD_FOLDER)
+      ? fs
+          .readdirSync(CARD_FOLDER)
+          .filter((name) => supported.some((ext) => name.toLowerCase().endsWith(ext)))
+          .filter((name) => !name.toLowerCase().includes("back"))
+      : [];
 
-    // Add some minor arcana cards
-    const minorArcanaCards = [
-      { name: "Ace of Wands", suit: "wands", number: 1, uprightMeaning: "Inspiration, new opportunities, and growth. The Ace of Wands represents creative energy and potential.", keywords: ["Inspiration", "Growth", "Potential", "Energy"], imageUrl: "https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=600" },
-      { name: "Two of Wands", suit: "wands", number: 2, uprightMeaning: "Planning, making decisions, and leaving comfort zones. This card represents personal power and future planning.", keywords: ["Planning", "Decisions", "Progress", "Discovery"], imageUrl: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=600" },
-      { name: "Ace of Cups", suit: "cups", number: 1, uprightMeaning: "New relationships, compassion, and creativity. The Ace of Cups represents emotional new beginnings.", keywords: ["Love", "Emotions", "Intuition", "Spirituality"], imageUrl: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=600" }
-    ];
-
-    // Add major arcana cards
-    majorArcanaCards.forEach(cardData => {
+    filenames.forEach((filename) => {
       const cardId = randomUUID();
+      const cardData = parseCardMetadata(filename);
+      const seed = getRiderWaiteMeaning(filename);
+
       const card: TarotCard = {
         id: cardId,
         deckId: defaultDeckId,
         name: cardData.name,
-        arcana: "major",
-        suit: null,
-        number: cardData.number,
-        imageUrl: cardData.imageUrl,
-        uprightMeaning: cardData.uprightMeaning,
-        reversedMeaning: null,
-        keywords: cardData.keywords.length > 0 ? cardData.keywords : null,
-      };
-      this.tarotCards.set(cardId, card);
-    });
-
-    // Add minor arcana cards
-    minorArcanaCards.forEach(cardData => {
-      const cardId = randomUUID();
-      const card: TarotCard = {
-        id: cardId,
-        deckId: defaultDeckId,
-        name: cardData.name,
-        arcana: "minor",
+        arcana: cardData.arcana,
         suit: cardData.suit,
         number: cardData.number,
-        imageUrl: cardData.imageUrl,
-        uprightMeaning: cardData.uprightMeaning,
-        reversedMeaning: null,
-        keywords: cardData.keywords.length > 0 ? cardData.keywords : null,
+        imageUrl: `/Cards-png/${filename}`,
+        uprightMeaning: seed?.uprightMeaning ?? `A transmission linked to ${cardData.name}.`,
+        reversedMeaning: seed?.reversedMeaning ?? null,
+        keywords: seed?.keywords ?? null,
       };
+
       this.tarotCards.set(cardId, card);
     });
   }
@@ -175,7 +257,7 @@ export class MemStorage implements IStorage {
       imageUrl: insertCard.imageUrl ?? null,
       uprightMeaning: insertCard.uprightMeaning ?? null,
       reversedMeaning: insertCard.reversedMeaning ?? null,
-      keywords: insertCard.keywords && Array.isArray(insertCard.keywords) ? insertCard.keywords : null,
+      keywords: asStringArray(insertCard.keywords),
     };
     this.tarotCards.set(id, card);
     return card;
@@ -188,6 +270,7 @@ export class MemStorage implements IStorage {
     const updatedCard: TarotCard = {
       ...existingCard,
       ...updateData,
+      keywords: updateData.keywords !== undefined ? asStringArray(updateData.keywords) : existingCard.keywords,
     };
     this.tarotCards.set(id, updatedCard);
     return updatedCard;
@@ -213,6 +296,29 @@ export class MemStorage implements IStorage {
       interpretation: insertReading.interpretation ?? null,
     };
     this.readings.set(id, reading);
+    return reading;
+  }
+
+  async getRecentSpreadReadings(limit: number = 20): Promise<SpreadReading[]> {
+    return Array.from(this.spreadReadings.values())
+      .sort((a, b) => (b.timestamp?.getTime() || 0) - (a.timestamp?.getTime() || 0))
+      .slice(0, limit);
+  }
+
+  async createSpreadReading(insertReading: InsertSpreadReading): Promise<SpreadReading> {
+    const id = randomUUID();
+    const reading: SpreadReading = {
+      ...insertReading,
+      id,
+      timestamp: new Date(),
+      operatorName: insertReading.operatorName ?? null,
+      subject: insertReading.subject ?? null,
+      deckId: insertReading.deckId ?? null,
+      deckName: insertReading.deckName ?? null,
+      cardNames: asStringArray(insertReading.cardNames) ?? [],
+      reading: insertReading.reading,
+    };
+    this.spreadReadings.set(id, reading);
     return reading;
   }
 

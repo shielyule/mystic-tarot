@@ -10,6 +10,26 @@ export const generateCardInterpretation = (card: TarotCard): string => {
   return interpretations[card.name] || "The universe is guiding you toward new understanding. Reflect on the symbols and imagery to unlock this card's personal message for you.";
 };
 
+/** HAL 9000–styled copy for the three-card spread reveal panel (uses DB meaning when available). */
+export function halDystopianRevealedCardNarration(card: TarotCard): string {
+  const meaning =
+    card.uprightMeaning?.trim() || generateCardInterpretation(card);
+  const registry =
+    card.arcana === "major"
+      ? "Major arcana; priority routing applied."
+      : `Minor arcana${card.suit ? `, suit ${card.suit}` : ""}; variance within logged tolerances.`;
+  const keywordLine =
+    Array.isArray(card.keywords) && card.keywords.length > 0
+      ? ` Keyword tags on file: ${card.keywords.slice(0, 5).join(", ")}.`
+      : "";
+
+  return [
+    `Optical analysis complete. Symbol identified as ${card.name}. ${registry}${keywordLine}`,
+    meaning,
+    "I am required to remind you that correlation is not causation—though, for operational purposes, we treat them as equivalent. Proceed.",
+  ].join("\n\n");
+}
+
 export const shuffleArray = <T>(array: T[]): T[] => {
   const shuffled = [...array];
   for (let i = shuffled.length - 1; i > 0; i--) {

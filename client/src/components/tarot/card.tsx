@@ -51,14 +51,14 @@ export default function TarotCardComponent({
             backgroundPosition: "center",
           }}
         >
-          <div className="absolute inset-0 bg-gradient-to-br from-mystic-600/60 to-mystic-900/80 rounded-xl" />
+          <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-primary/30 to-black/80" />
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="text-center">
-              <div className="text-mystic-gold text-4xl mb-4">🌙</div>
-              <p className="text-mystic-gold-light font-cinzel">Mystic Tarot</p>
+              <div className="mb-4 text-4xl text-primary">◎</div>
+              <p className="font-label-caps text-xs tracking-[0.3em] text-primary">ARCANA_SEAL</p>
             </div>
           </div>
-          <div className="absolute inset-0 rounded-xl mystical-glow opacity-0 hover:opacity-100 transition-opacity duration-300" />
+          <div className="absolute inset-0 rounded-xl opacity-0 shadow-[0_0_24px_rgba(255,180,168,0.35)] transition-opacity duration-300 hover:opacity-100" />
         </motion.div>
 
         {/* Card Front */}
@@ -77,16 +77,14 @@ export default function TarotCardComponent({
           >
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/30 rounded-xl" />
             <div className="absolute bottom-4 left-4 right-4">
-              <h3 className="font-cinzel text-xl font-semibold text-white mb-1">
+              <h3 className="mb-1 font-headline-md text-lg font-semibold text-white md:text-xl">
                 {card.name}
               </h3>
-              <p className="text-mystic-gold-light text-sm capitalize">
-                {card.arcana} {card.arcana === 'major' ? 'Arcana' : card.suit}
+              <p className="text-sm capitalize text-primary/90">
+                {card.arcana} {card.arcana === "major" ? "Arcana" : card.suit}
               </p>
               {card.number !== null && (
-                <p className="text-mystic-gold-light/70 text-xs">
-                  {card.number === 0 ? '0' : card.number}
-                </p>
+                <p className="text-xs text-on-background/70">{card.number === 0 ? "0" : card.number}</p>
               )}
             </div>
           </motion.div>

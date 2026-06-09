@@ -21,14 +21,10 @@ export default function ShuffleOverlay({ isVisible }: ShuffleOverlayProps) {
           transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
           className="mb-6 flex justify-center"
         >
-          <Shuffle className="text-mystic-gold text-6xl" />
+          <Shuffle className="text-6xl text-red-600" />
         </motion.div>
-        <h3 className="font-cinzel text-2xl text-mystic-gold mb-2">
-          Shuffling the Cards...
-        </h3>
-        <p className="text-mystic-gold-light">
-          The universe is preparing your reading
-        </p>
+        <h3 className="font-headline-md text-headline-md mb-2 text-primary">Resequencing deck…</h3>
+        <p className="font-mono-data text-on-background/80">HAL subsystems optimizing draw order.</p>
       </div>
     </motion.div>
   );

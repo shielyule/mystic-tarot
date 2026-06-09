@@ -223,10 +223,10 @@ export default function CMS() {
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
       <div className="text-center mb-8 animate-fade-in">
-        <h2 className="font-cinzel text-4xl md:text-5xl font-semibold mb-4 text-mystic-gold">
+        <h2 className="font-headline-md text-4xl md:text-5xl font-semibold mb-4 text-primary">
           Create Custom Deck
         </h2>
-        <p className="text-mystic-gold-light text-lg max-w-2xl mx-auto">
+        <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
           Upload your own tarot card designs and create a personalized deck for your readings
         </p>
       </div>
@@ -235,9 +235,9 @@ export default function CMS() {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-black/40 backdrop-blur-md rounded-xl p-8 border border-mystic-gold/20 mb-8"
+        className="bg-black/40 backdrop-blur-md rounded-xl p-8 border border-primary/20 mb-8"
       >
-        <h3 className="font-cinzel text-xl font-semibold text-mystic-gold mb-6">Deck Information</h3>
+        <h3 className="font-headline-md text-xl font-semibold text-primary mb-6">Deck Information</h3>
         
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -247,12 +247,12 @@ export default function CMS() {
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-mystic-gold-light">Deck Name</FormLabel>
+                    <FormLabel className="text-muted-foreground">Deck Name</FormLabel>
                     <FormControl>
                       <Input
                         {...field}
                         placeholder="Enter deck name..."
-                        className="bg-mystic-800/50 border-mystic-gold/30 text-white placeholder-mystic-gold-light/50 focus:border-mystic-gold"
+                        className="bg-card/80 border-primary/30 text-white placeholder-muted-foreground/50 focus:border-primary"
                       />
                     </FormControl>
                     <FormMessage />
@@ -265,16 +265,16 @@ export default function CMS() {
                 name="theme"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-mystic-gold-light">Theme</FormLabel>
+                    <FormLabel className="text-muted-foreground">Theme</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
-                        <SelectTrigger className="bg-mystic-800/50 border-mystic-gold/30 text-white focus:border-mystic-gold">
+                        <SelectTrigger className="bg-card/80 border-primary/30 text-white focus:border-primary">
                           <SelectValue placeholder="Select theme..." />
                         </SelectTrigger>
                       </FormControl>
-                      <SelectContent className="bg-mystic-800 border-mystic-gold/30">
+                      <SelectContent className="bg-card border-primary/30">
                         {themes.map((theme) => (
-                          <SelectItem key={theme.value} value={theme.value} className="text-white hover:bg-mystic-600/50">
+                          <SelectItem key={theme.value} value={theme.value} className="text-white hover:bg-secondary/60">
                             {theme.label}
                           </SelectItem>
                         ))}
@@ -291,14 +291,14 @@ export default function CMS() {
               name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-mystic-gold-light">Description</FormLabel>
+                  <FormLabel className="text-muted-foreground">Description</FormLabel>
                   <FormControl>
                     <Textarea
                       {...field}
                       value={field.value || ''}
                       placeholder="Describe your deck's unique characteristics and energy..."
                       rows={3}
-                      className="bg-mystic-800/50 border-mystic-gold/30 text-white placeholder-mystic-gold-light/50 focus:border-mystic-gold resize-none"
+                      className="bg-card/80 border-primary/30 text-white placeholder-muted-foreground/50 focus:border-primary resize-none"
                     />
                   </FormControl>
                   <FormMessage />
@@ -317,85 +317,85 @@ export default function CMS() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.05 }}
-          className="bg-gradient-to-r from-mystic-gold/10 to-mystic-600/10 backdrop-blur-md rounded-xl p-8 border-2 border-mystic-gold/40"
+          className="bg-gradient-to-r from-primary/15 to-secondary/30 backdrop-blur-md rounded-xl p-8 border-2 border-primary/40"
         >
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h3 className="font-cinzel text-xl font-semibold text-mystic-gold">Bulk Upload Complete Deck</h3>
-              <p className="text-sm text-mystic-gold-light mt-2">Perfect for uploading your Rider-Waite Smith collection!</p>
+              <h3 className="font-headline-md text-xl font-semibold text-primary">Bulk Upload Complete Deck</h3>
+              <p className="text-sm text-muted-foreground mt-2">Perfect for uploading your Rider-Waite Smith collection!</p>
             </div>
             <div className="text-right">
-              <div className="text-2xl font-bold text-mystic-gold">78</div>
-              <div className="text-xs text-mystic-gold-light">Total Cards</div>
+              <div className="text-2xl font-bold text-primary">78</div>
+              <div className="text-xs text-muted-foreground">Total Cards</div>
             </div>
           </div>
 
-          <div className="bg-mystic-900/40 rounded-lg p-6 mb-6">
-            <h4 className="font-semibold text-mystic-gold mb-3">📋 Your Collection Structure</h4>
-            <div className="grid md:grid-cols-2 gap-6 text-sm text-mystic-gold-light">
+          <div className="bg-background/60 rounded-lg p-6 mb-6">
+            <h4 className="font-semibold text-primary mb-3">📋 Your Collection Structure</h4>
+            <div className="grid md:grid-cols-2 gap-6 text-sm text-muted-foreground">
               <div>
-                <p className="font-medium mb-3 text-mystic-gold">📂 What You Have:</p>
-                <div className="space-y-2 text-xs bg-mystic-800/50 p-4 rounded">
+                <p className="font-medium mb-3 text-primary">📂 What You Have:</p>
+                <div className="space-y-2 text-xs bg-card/80 p-4 rounded">
                   <div className="flex items-center justify-between">
                     <span>🎴 Major Arcana (Named Cards)</span>
-                    <span className="text-mystic-gold font-bold">22</span>
+                    <span className="text-primary font-bold">22</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span>🏆 Cups Cards</span>
-                    <span className="text-mystic-gold font-bold">14</span>
+                    <span className="text-primary font-bold">14</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span>⚔️ Swords Cards</span>
-                    <span className="text-mystic-gold font-bold">14</span>
+                    <span className="text-primary font-bold">14</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span>🪄 Wands Cards</span>
-                    <span className="text-mystic-gold font-bold">14</span>
+                    <span className="text-primary font-bold">14</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span>🪙 Pentacles Cards</span>
-                    <span className="text-mystic-gold font-bold">14</span>
+                    <span className="text-primary font-bold">14</span>
                   </div>
-                  <div className="flex items-center justify-between border-t border-mystic-gold/20 pt-2">
+                  <div className="flex items-center justify-between border-t border-primary/20 pt-2">
                     <span>🎭 Card Back Design</span>
-                    <span className="text-mystic-gold font-bold">1</span>
+                    <span className="text-primary font-bold">1</span>
                   </div>
-                  <div className="flex items-center justify-between border-t border-mystic-gold/30 pt-2 font-bold text-mystic-gold">
+                  <div className="flex items-center justify-between border-t border-primary/30 pt-2 font-bold text-primary">
                     <span>Total</span>
                     <span>79 files</span>
                   </div>
                 </div>
               </div>
               <div>
-                <p className="font-medium mb-3 text-mystic-gold">✨ Auto-Recognition:</p>
-                <div className="space-y-2 text-xs bg-mystic-800/50 p-4 rounded">
+                <p className="font-medium mb-3 text-primary">✨ Auto-Recognition:</p>
+                <div className="space-y-2 text-xs bg-card/80 p-4 rounded">
                   <div>✓ Major Arcana by name (fool, magician, etc.)</div>
                   <div>✓ Minor Arcana by suit folder names</div>
                   <div>✓ Card numbers (01-14) automatically parsed</div>
                   <div>✓ Court cards (page, knight, queen, king)</div>
                   <div>✓ CardBacks file for deck back design</div>
                 </div>
-                <div className="mt-4 p-3 bg-gradient-to-r from-mystic-gold/10 to-mystic-600/10 rounded border border-mystic-gold/30">
-                  <p className="text-xs font-medium text-mystic-gold">🚀 Pro Tip</p>
-                  <p className="text-xs text-mystic-gold-light mt-1">Select all 79 files at once! The system will sort them automatically into the proper structure.</p>
+                <div className="mt-4 p-3 bg-gradient-to-r from-primary/15 to-secondary/30 rounded border border-primary/30">
+                  <p className="text-xs font-medium text-primary">🚀 Pro Tip</p>
+                  <p className="text-xs text-muted-foreground mt-1">Select all 79 files at once! The system will sort them automatically into the proper structure.</p>
                 </div>
               </div>
             </div>
           </div>
           
           <div 
-            className="border-2 border-dashed border-mystic-gold/50 rounded-xl p-16 text-center hover:border-mystic-gold transition-colors cursor-pointer bg-mystic-900/20"
+            className="border-2 border-dashed border-primary/50 rounded-xl p-16 text-center hover:border-primary transition-colors cursor-pointer bg-background/40"
             onClick={() => document.getElementById('bulk-upload')?.click()}
           >
-            <Upload className="text-mystic-gold text-6xl mb-6 mx-auto animate-bounce" />
-            <h4 className="font-cinzel text-2xl font-semibold text-mystic-gold mb-4">Drop All 79 Files Here</h4>
-            <p className="text-mystic-gold-light text-lg mb-4">Select your complete Rider-Waite collection at once</p>
-            <div className="grid grid-cols-3 gap-4 text-xs text-mystic-gold-light/80 mb-4">
+            <Upload className="text-primary text-6xl mb-6 mx-auto animate-bounce" />
+            <h4 className="font-headline-md text-2xl font-semibold text-primary mb-4">Drop All 79 Files Here</h4>
+            <p className="text-muted-foreground text-lg mb-4">Select your complete Rider-Waite collection at once</p>
+            <div className="grid grid-cols-3 gap-4 text-xs text-muted-foreground/80 mb-4">
               <div>22 Named Cards</div>
               <div>56 Suit Cards</div>
               <div>1 CardBacks file</div>
             </div>
-            <div className="flex items-center justify-center gap-4 text-sm text-mystic-gold-light/70">
+            <div className="flex items-center justify-center gap-4 text-sm text-muted-foreground/70">
               <span>PNG • JPG • WebP</span>
               <span>•</span>
               <span>Max 5MB each</span>
@@ -412,8 +412,8 @@ export default function CMS() {
             />
           </div>
 
-          <div className="mt-6 p-4 bg-mystic-800/30 rounded-lg">
-            <p className="text-xs text-mystic-gold-light">
+          <div className="mt-6 p-4 bg-card/50 rounded-lg">
+            <p className="text-xs text-muted-foreground">
               <strong>Tip:</strong> The system will automatically recognize card names from your filenames and create the complete deck structure for you!
             </p>
           </div>
@@ -424,24 +424,24 @@ export default function CMS() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="bg-black/40 backdrop-blur-md rounded-xl p-8 border border-mystic-gold/20"
+          className="bg-black/40 backdrop-blur-md rounded-xl p-8 border border-primary/20"
         >
           <div className="flex items-center justify-between mb-6">
-            <h3 className="font-cinzel text-xl font-semibold text-mystic-gold">Major Arcana (22 Cards)</h3>
-            <span className="text-sm text-mystic-gold-light bg-mystic-600/50 px-3 py-1 rounded-full">
+            <h3 className="font-headline-md text-xl font-semibold text-primary">Major Arcana (22 Cards)</h3>
+            <span className="text-sm text-muted-foreground bg-secondary/60 px-3 py-1 rounded-full">
               {uploadProgress.majorArcana}/22 uploaded
             </span>
           </div>
           
           {/* Upload Zone */}
           <div 
-            className="border-2 border-dashed border-mystic-gold/30 rounded-xl p-12 text-center hover:border-mystic-gold/50 transition-colors cursor-pointer"
+            className="border-2 border-dashed border-primary/30 rounded-xl p-12 text-center hover:border-primary/50 transition-colors cursor-pointer"
             onClick={() => document.getElementById('major-arcana-upload')?.click()}
           >
-            <CloudUpload className="text-mystic-gold text-4xl mb-4 mx-auto" />
-            <h4 className="font-semibold text-mystic-gold mb-2">Drop Major Arcana cards here</h4>
-            <p className="text-mystic-gold-light text-sm mb-4">or click to browse files</p>
-            <p className="text-xs text-mystic-gold-light/70">Supports JPG, PNG, WebP • Max 5MB per file</p>
+            <CloudUpload className="text-primary text-4xl mb-4 mx-auto" />
+            <h4 className="font-semibold text-primary mb-2">Drop Major Arcana cards here</h4>
+            <p className="text-muted-foreground text-sm mb-4">or click to browse files</p>
+            <p className="text-xs text-muted-foreground/70">Supports JPG, PNG, WebP • Max 5MB per file</p>
             <input
               type="file"
               id="major-arcana-upload"
@@ -459,15 +459,15 @@ export default function CMS() {
                 key={i}
                 className={`aspect-[2/3] rounded-lg border ${
                   i < uploadProgress.majorArcana
-                    ? "bg-mystic-600/50 border-mystic-gold/30"
-                    : "bg-mystic-800/30 border-mystic-gold/10 opacity-50"
+                    ? "bg-secondary/60 border-primary/30"
+                    : "bg-card/50 border-primary/10 opacity-50"
                 }`}
               >
                 <div className="w-full h-full flex items-center justify-center">
                   {i < uploadProgress.majorArcana ? (
-                    <Check className="text-mystic-gold text-sm" />
+                    <Check className="text-primary text-sm" />
                   ) : (
-                    <Upload className="text-mystic-gold/50 text-sm" />
+                    <Upload className="text-primary/50 text-sm" />
                   )}
                 </div>
               </div>
@@ -480,11 +480,11 @@ export default function CMS() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="bg-black/40 backdrop-blur-md rounded-xl p-8 border border-mystic-gold/20"
+          className="bg-black/40 backdrop-blur-md rounded-xl p-8 border border-primary/20"
         >
           <div className="flex items-center justify-between mb-6">
-            <h3 className="font-cinzel text-xl font-semibold text-mystic-gold">Minor Arcana (56 Cards)</h3>
-            <span className="text-sm text-mystic-gold-light bg-mystic-600/50 px-3 py-1 rounded-full">
+            <h3 className="font-headline-md text-xl font-semibold text-primary">Minor Arcana (56 Cards)</h3>
+            <span className="text-sm text-muted-foreground bg-secondary/60 px-3 py-1 rounded-full">
               {uploadProgress.minorArcana}/56 uploaded
             </span>
           </div>
@@ -497,8 +497,8 @@ export default function CMS() {
                 onClick={() => setCurrentSuit(suit.id)}
                 className={`px-4 py-2 text-sm font-medium whitespace-nowrap ${
                   currentSuit === suit.id
-                    ? "bg-mystic-gold text-mystic-900"
-                    : "bg-mystic-600/80 text-white hover:bg-mystic-600"
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-secondary/90 text-white hover:bg-secondary"
                 }`}
               >
                 {suit.name} ({suit.count})
@@ -508,15 +508,15 @@ export default function CMS() {
           
           {/* Upload Zone for Current Suit */}
           <div 
-            className="border-2 border-dashed border-mystic-gold/30 rounded-xl p-12 text-center hover:border-mystic-gold/50 transition-colors cursor-pointer"
+            className="border-2 border-dashed border-primary/30 rounded-xl p-12 text-center hover:border-primary/50 transition-colors cursor-pointer"
             onClick={() => document.getElementById('minor-arcana-upload')?.click()}
           >
-            <CloudUpload className="text-mystic-gold text-4xl mb-4 mx-auto" />
-            <h4 className="font-semibold text-mystic-gold mb-2 capitalize">
+            <CloudUpload className="text-primary text-4xl mb-4 mx-auto" />
+            <h4 className="font-semibold text-primary mb-2 capitalize">
               Drop {currentSuit} cards here
             </h4>
-            <p className="text-mystic-gold-light text-sm mb-4">Upload all 14 cards for this suit</p>
-            <p className="text-xs text-mystic-gold-light/70">Ace, 2-10, Page, Knight, Queen, King</p>
+            <p className="text-muted-foreground text-sm mb-4">Upload all 14 cards for this suit</p>
+            <p className="text-xs text-muted-foreground/70">Ace, 2-10, Page, Knight, Queen, King</p>
             <input
               type="file"
               id="minor-arcana-upload"
@@ -533,18 +533,18 @@ export default function CMS() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
-          className="bg-black/40 backdrop-blur-md rounded-xl p-8 border border-mystic-gold/20"
+          className="bg-black/40 backdrop-blur-md rounded-xl p-8 border border-primary/20"
         >
-          <h3 className="font-cinzel text-xl font-semibold text-mystic-gold mb-6">Card Back Design</h3>
+          <h3 className="font-headline-md text-xl font-semibold text-primary mb-6">Card Back Design</h3>
           
           <div 
-            className="border-2 border-dashed border-mystic-gold/30 rounded-xl p-12 text-center hover:border-mystic-gold/50 transition-colors cursor-pointer"
+            className="border-2 border-dashed border-primary/30 rounded-xl p-12 text-center hover:border-primary/50 transition-colors cursor-pointer"
             onClick={() => document.getElementById('card-back-upload')?.click()}
           >
-            <ImageIcon className="text-mystic-gold text-4xl mb-4 mx-auto" />
-            <h4 className="font-semibold text-mystic-gold mb-2">Upload card back design</h4>
-            <p className="text-mystic-gold-light text-sm mb-4">This will be shown when cards are face down</p>
-            <p className="text-xs text-mystic-gold-light/70">Recommended: 400x600px • JPG, PNG, WebP</p>
+            <ImageIcon className="text-primary text-4xl mb-4 mx-auto" />
+            <h4 className="font-semibold text-primary mb-2">Upload card back design</h4>
+            <p className="text-muted-foreground text-sm mb-4">This will be shown when cards are face down</p>
+            <p className="text-xs text-muted-foreground/70">Recommended: 400x600px • JPG, PNG, WebP</p>
             <input
               type="file"
               id="card-back-upload"
@@ -556,14 +556,14 @@ export default function CMS() {
 
           {/* Card Back Preview */}
           <div className="mt-6 flex justify-center">
-            <div className="w-32 h-48 bg-mystic-800/50 rounded-lg border border-mystic-gold/20 flex items-center justify-center">
+            <div className="w-32 h-48 bg-card/80 rounded-lg border border-primary/20 flex items-center justify-center">
               <div className="text-center">
                 {uploadProgress.cardBack ? (
-                  <Check className="text-mystic-gold text-2xl mb-2 mx-auto" />
+                  <Check className="text-primary text-2xl mb-2 mx-auto" />
                 ) : (
-                  <ImageIcon className="text-mystic-gold/50 text-2xl mb-2 mx-auto" />
+                  <ImageIcon className="text-primary/50 text-2xl mb-2 mx-auto" />
                 )}
-                <p className="text-xs text-mystic-gold-light/50">
+                <p className="text-xs text-muted-foreground/50">
                   {uploadProgress.cardBack ? "Uploaded" : "Preview"}
                 </p>
               </div>
@@ -580,7 +580,7 @@ export default function CMS() {
         >
           <Button
             type="button"
-            className="bg-mystic-600/80 hover:bg-mystic-600 text-white px-8 py-3 transition-colors"
+            className="bg-secondary/90 hover:bg-secondary text-white px-8 py-3 transition-colors"
           >
             <Save className="w-4 h-4 mr-2" />
             Save Draft
@@ -588,11 +588,11 @@ export default function CMS() {
           <Button
             onClick={form.handleSubmit(onSubmit)}
             disabled={createDeck.isPending}
-            className="bg-mystic-gold hover:bg-mystic-gold/90 text-mystic-900 px-8 py-3 font-semibold transition-colors"
+            className="bg-primary px-8 py-3 font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
           >
             {createDeck.isPending ? (
               <>
-                <div className="w-4 h-4 mr-2 animate-spin rounded-full border-2 border-mystic-900/20 border-t-mystic-900" />
+                <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-primary-foreground/20 border-t-primary-foreground" />
                 Creating...
               </>
             ) : (

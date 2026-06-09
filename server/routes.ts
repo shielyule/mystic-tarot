@@ -5,6 +5,8 @@ import express from "express";
 import path from "path";
 import { storage } from "./storage";
 import { insertDeckSchema, insertTarotCardSchema, insertReadingSchema } from "@shared/schema";
+import { z } from "zod";
+import { generateTarotReadingWithGemini, type TarotReadingCardPayload } from "./tarot-ai-reading";
 
 // Helper function to parse card information from filename
 function parseCardFromFilename(filename: string) {
@@ -276,6 +278,68 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(201).json(reading);
     } catch (error) {
       res.status(400).json({ message: "Invalid reading data" });
+    }
+  });
+
+  app.get("/api/spread-readings", async (req, res) => {
+    try {
+      const limit = parseInt(req.query.limit as string) || 20;
+      const readings = await storage.getRecentSpreadReadings(limit);
+      res.json(readings);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch spread readings" });
+    }
+  });
+
+  const tarotReadingRequestSchema = z.object({
+    operatorName: z.string().max(200).optional(),
+    subject: z.string().max(4000).optional(),
+    deckId: z.string().max(64).optional(),
+    deckName: z.string().max(200).optional(),
+    cards: z
+      .array(
+        z.object({
+          name: z.string().min(1).max(200),
+          arcana: z.string().min(1).max(32),
+          suit: z.string().max(32).nullable().optional(),
+          number: z.number().int().nullable().optional(),
+          uprightMeaning: z.string().max(8000).nullable().optional(),
+          keywords: z.array(z.string().max(100)).max(40).optional(),
+        }),
+      )
+      .length(3),
+  });
+
+  app.post("/api/tarot-reading", async (req, res) => {
+    try {
+      const body = tarotReadingRequestSchema.parse(req.body);
+      const reading = await generateTarotReadingWithGemini(
+        body.operatorName,
+        body.subject,
+        body.cards as TarotReadingCardPayload[],
+      );
+      const saved = await storage.createSpreadReading({
+        operatorName: body.operatorName ?? null,
+        subject: body.subject ?? null,
+        deckId: body.deckId ?? null,
+        deckName: body.deckName ?? null,
+        cardNames: body.cards.map((c) => c.name),
+        reading,
+      });
+      res.json({ reading, id: saved.id });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid request body", issues: error.issues });
+      }
+      const msg = error instanceof Error ? error.message : "Failed to generate reading";
+      if (msg.includes("GEMINI_API_KEY")) {
+        return res.status(503).json({
+          message:
+            "AI reading is not configured. Set GEMINI_API_KEY (and optionally GEMINI_MODEL, e.g. gemini-2.5-flash) in the server environment.",
+        });
+      }
+      console.error("POST /api/tarot-reading:", error);
+      res.status(500).json({ message: msg.length > 400 ? `${msg.slice(0, 400)}…` : msg });
     }
   });
 

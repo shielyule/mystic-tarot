@@ -33,6 +33,18 @@ export const readings = pgTable("readings", {
   timestamp: timestamp("timestamp").default(sql`now()`),
 });
 
+/** Full three-card spread synthesis saved after AI reading completes. */
+export const spreadReadings = pgTable("spread_readings", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  operatorName: text("operator_name"),
+  subject: text("subject"),
+  deckId: varchar("deck_id"),
+  deckName: text("deck_name"),
+  cardNames: jsonb("card_names").$type<string[]>().default([]),
+  reading: text("reading").notNull(),
+  timestamp: timestamp("timestamp").default(sql`now()`),
+});
+
 export const customUploads = pgTable("custom_uploads", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   deckId: varchar("deck_id").references(() => decks.id).notNull(),
@@ -57,6 +69,11 @@ export const insertReadingSchema = createInsertSchema(readings).omit({
   timestamp: true,
 });
 
+export const insertSpreadReadingSchema = createInsertSchema(spreadReadings).omit({
+  id: true,
+  timestamp: true,
+});
+
 export const insertCustomUploadSchema = createInsertSchema(customUploads).omit({
   id: true,
   uploadedAt: true,
@@ -65,9 +82,11 @@ export const insertCustomUploadSchema = createInsertSchema(customUploads).omit({
 export type InsertDeck = z.infer<typeof insertDeckSchema>;
 export type InsertTarotCard = z.infer<typeof insertTarotCardSchema>;
 export type InsertReading = z.infer<typeof insertReadingSchema>;
+export type InsertSpreadReading = z.infer<typeof insertSpreadReadingSchema>;
 export type InsertCustomUpload = z.infer<typeof insertCustomUploadSchema>;
 
 export type Deck = typeof decks.$inferSelect;
 export type TarotCard = typeof tarotCards.$inferSelect;
 export type Reading = typeof readings.$inferSelect;
+export type SpreadReading = typeof spreadReadings.$inferSelect;
 export type CustomUpload = typeof customUploads.$inferSelect;
