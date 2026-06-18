@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { Menu, X } from "lucide-react";
+import HalAudioToggle from "@/components/layout/hal-audio-toggle";
+import { useAuth } from "@/contexts/auth-context";
 
 const navLinkClass =
   "font-label-caps uppercase tracking-widest text-sm text-white transition-none hover:bg-red-600 hover:text-black px-1 py-0.5";
@@ -8,12 +10,20 @@ const navLinkClass =
 export default function Navigation() {
   const [location] = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { user, logout, isLoading } = useAuth();
 
-  const items = [
-    { path: "/", label: "Starchild" },
+  const publicItems = [{ path: "/", label: "Starchild" }] as const;
+  const memberItems = [
     { path: "/decks", label: "Monolith" },
     { path: "/cms", label: "Telemetry" },
   ] as const;
+
+  const navItems = user ? [...publicItems, ...memberItems] : publicItems;
+
+  const handleLogout = async () => {
+    await logout();
+    setIsMobileMenuOpen(false);
+  };
 
   return (
     <>
@@ -30,7 +40,7 @@ export default function Navigation() {
         </Link>
 
         <nav className="hidden items-center gap-8 md:flex">
-          {items.map((item) => {
+          {navItems.map((item) => {
             const active = location === item.path;
             return (
               <Link key={`${item.path}-${item.label}`} href={item.path}>
@@ -46,7 +56,32 @@ export default function Navigation() {
           })}
         </nav>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
+          <HalAudioToggle />
+          {!isLoading && (
+            <div className="hidden items-center gap-2 sm:flex">
+              {user ? (
+                <>
+                  <span className="max-w-[8rem] truncate font-mono-data text-[10px] text-white/70">
+                    {user.displayName || user.email.split("@")[0]}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => void handleLogout()}
+                    className="border border-white/25 px-2 py-1 font-label-caps text-[9px] tracking-widest text-white/70 hover:border-red-600 hover:text-red-600"
+                  >
+                    LOGOUT
+                  </button>
+                </>
+              ) : (
+                <Link href="/login">
+                  <span className="border-2 border-red-600 px-2 py-1 font-label-caps text-[9px] tracking-widest text-red-600 hover:bg-red-600 hover:text-black">
+                    LOGIN
+                  </span>
+                </Link>
+              )}
+            </div>
+          )}
           <span className="material-symbols-outlined hidden text-red-600 sm:inline">
             emergency_home
           </span>
@@ -67,16 +102,36 @@ export default function Navigation() {
       {isMobileMenuOpen && (
         <div className="fixed inset-0 z-40 bg-black/95 pt-24 md:hidden">
           <div className="flex flex-col gap-6 px-8">
-            {items.map((item) => (
+            {navItems.map((item) => (
               <Link key={`m-${item.path}-${item.label}`} href={item.path}>
                 <span
-                  className={`block font-label-caps text-lg uppercase tracking-widest text-white`}
+                  className="block font-label-caps text-lg uppercase tracking-widest text-white"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   {item.label}
                 </span>
               </Link>
             ))}
+            {!isLoading && (
+              user ? (
+                <button
+                  type="button"
+                  className="text-left font-label-caps text-lg uppercase tracking-widest text-red-500"
+                  onClick={() => void handleLogout()}
+                >
+                  Logout
+                </button>
+              ) : (
+                <Link href="/login">
+                  <span
+                    className="block font-label-caps text-lg uppercase tracking-widest text-red-500"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    Login
+                  </span>
+                </Link>
+              )
+            )}
           </div>
         </div>
       )}

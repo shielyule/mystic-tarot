@@ -7,6 +7,12 @@ import { storage } from "./storage";
 import { insertDeckSchema, insertTarotCardSchema, insertReadingSchema } from "@shared/schema";
 import { z } from "zod";
 import { generateTarotReadingWithGemini, type TarotReadingCardPayload } from "./tarot-ai-reading";
+import { isFishAudioConfigured, synthesizeHalSpeech } from "./fish-audio-tts";
+import { registerAuthRoutes, requireAuth } from "./auth";
+import {
+  createSpreadReadingForUser,
+  getSpreadReadingsByUser,
+} from "./spread-reading-repository";
 
 // Helper function to parse card information from filename
 function parseCardFromFilename(filename: string) {
@@ -156,7 +162,8 @@ const upload = multer({
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  
+  registerAuthRoutes(app);
+
   // Deck routes
   app.get("/api/decks", async (req, res) => {
     try {
@@ -179,7 +186,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/decks", async (req, res) => {
+  app.post("/api/decks", requireAuth, async (req, res) => {
     try {
       const deckData = insertDeckSchema.parse(req.body);
       const deck = await storage.createDeck(deckData);
@@ -189,7 +196,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put("/api/decks/:id", async (req, res) => {
+  app.put("/api/decks/:id", requireAuth, async (req, res) => {
     try {
       const deckData = insertDeckSchema.partial().parse(req.body);
       const deck = await storage.updateDeck(req.params.id, deckData);
@@ -202,7 +209,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/decks/:id", async (req, res) => {
+  app.delete("/api/decks/:id", requireAuth, async (req, res) => {
     try {
       const deleted = await storage.deleteDeck(req.params.id);
       if (!deleted) {
@@ -236,7 +243,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/cards", async (req, res) => {
+  app.post("/api/cards", requireAuth, async (req, res) => {
     try {
       const cardData = insertTarotCardSchema.parse(req.body);
       const card = await storage.createCard(cardData);
@@ -271,7 +278,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/readings", async (req, res) => {
+  app.post("/api/readings", requireAuth, async (req, res) => {
     try {
       const readingData = insertReadingSchema.parse(req.body);
       const reading = await storage.createReading(readingData);
@@ -281,10 +288,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/spread-readings", async (req, res) => {
+  app.get("/api/spread-readings", requireAuth, async (req, res) => {
     try {
       const limit = parseInt(req.query.limit as string) || 20;
-      const readings = await storage.getRecentSpreadReadings(limit);
+      const readings = await getSpreadReadingsByUser(req.user!.id, limit);
       res.json(readings);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch spread readings" });
@@ -310,6 +317,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
       .length(3),
   });
 
+  const ttsSpeechRequestSchema = z.object({
+    text: z.string().min(1).max(12_000),
+  });
+
+  app.get("/api/tts/status", (_req, res) => {
+    res.json({
+      configured: isFishAudioConfigured(),
+      voiceId: process.env.FISH_HAL_VOICE_ID?.trim() || "3892b24d0b11449a8d60eae269d7ee73",
+    });
+  });
+
+  app.post("/api/tts/speech", async (req, res) => {
+    try {
+      const body = ttsSpeechRequestSchema.parse(req.body);
+      const audio = await synthesizeHalSpeech({ text: body.text });
+      res.setHeader("Content-Type", "audio/mpeg");
+      res.setHeader("Cache-Control", "no-store");
+      res.send(audio);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid request body", issues: error.issues });
+      }
+      const msg = error instanceof Error ? error.message : "Failed to synthesize speech";
+      if (msg.includes("FISH_API_KEY")) {
+        return res.status(503).json({
+          message:
+            "HAL speech is not configured. Set FISH_API_KEY (and optionally FISH_HAL_VOICE_ID) in the server environment.",
+        });
+      }
+      if (msg.includes("402") || msg.includes("no API credits")) {
+        return res.status(402).json({ message: msg });
+      }
+      console.error("POST /api/tts/speech:", error);
+      res.status(500).json({ message: msg.length > 400 ? `${msg.slice(0, 400)}…` : msg });
+    }
+  });
+
   app.post("/api/tarot-reading", async (req, res) => {
     try {
       const body = tarotReadingRequestSchema.parse(req.body);
@@ -318,15 +362,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
         body.subject,
         body.cards as TarotReadingCardPayload[],
       );
-      const saved = await storage.createSpreadReading({
-        operatorName: body.operatorName ?? null,
-        subject: body.subject ?? null,
-        deckId: body.deckId ?? null,
-        deckName: body.deckName ?? null,
-        cardNames: body.cards.map((c) => c.name),
-        reading,
-      });
-      res.json({ reading, id: saved.id });
+      let savedId: string | undefined;
+      if (req.isAuthenticated() && req.user) {
+        try {
+          const saved = await createSpreadReadingForUser(req.user.id, {
+            operatorName: body.operatorName ?? null,
+            subject: body.subject ?? null,
+            deckId: body.deckId ?? null,
+            deckName: body.deckName ?? null,
+            cardNames: body.cards.map((c) => c.name),
+            reading,
+          });
+          savedId = saved.id;
+        } catch (saveErr) {
+          console.error("Failed to save spread reading:", saveErr);
+        }
+      }
+      res.json({ reading, id: savedId });
     } catch (error) {
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: "Invalid request body", issues: error.issues });
@@ -344,7 +396,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // File upload routes
-  app.post("/api/upload/card-images", upload.array('cards', 78), async (req, res) => {
+  app.post("/api/upload/card-images", requireAuth, upload.array('cards', 78), async (req, res) => {
     try {
       const files = req.files as Express.Multer.File[];
       const { deckId, cardType } = req.body;
@@ -374,7 +426,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Bulk upload route for complete deck
-  app.post("/api/upload/bulk-deck", upload.array('cards', 78), async (req, res) => {
+  app.post("/api/upload/bulk-deck", requireAuth, upload.array('cards', 78), async (req, res) => {
     try {
       const files = req.files as Express.Multer.File[];
       const { deckId } = req.body;
@@ -430,7 +482,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/upload/card-back", upload.single('cardBack'), async (req, res) => {
+  app.post("/api/upload/card-back", requireAuth, upload.single('cardBack'), async (req, res) => {
     try {
       const file = req.file;
       const { deckId } = req.body;

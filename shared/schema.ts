@@ -3,6 +3,14 @@ import { pgTable, text, varchar, integer, jsonb, timestamp, boolean } from "driz
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
+export const users = pgTable("users", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  email: varchar("email", { length: 320 }).notNull().unique(),
+  passwordHash: text("password_hash").notNull(),
+  displayName: text("display_name"),
+  createdAt: timestamp("created_at").default(sql`now()`),
+});
+
 export const decks = pgTable("decks", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   name: text("name").notNull(),
@@ -36,6 +44,7 @@ export const readings = pgTable("readings", {
 /** Full three-card spread synthesis saved after AI reading completes. */
 export const spreadReadings = pgTable("spread_readings", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id),
   operatorName: text("operator_name"),
   subject: text("subject"),
   deckId: varchar("deck_id"),
@@ -90,3 +99,7 @@ export type TarotCard = typeof tarotCards.$inferSelect;
 export type Reading = typeof readings.$inferSelect;
 export type SpreadReading = typeof spreadReadings.$inferSelect;
 export type CustomUpload = typeof customUploads.$inferSelect;
+export type User = typeof users.$inferSelect;
+
+/** Public user fields — never expose passwordHash to clients. */
+export type SafeUser = Pick<User, "id" | "email" | "displayName" | "createdAt">;

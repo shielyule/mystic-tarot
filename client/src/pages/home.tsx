@@ -16,6 +16,8 @@ import {
 } from "@/lib/hal-lens-pulse";
 import { getOperatorName, setOperatorName as persistOperatorName } from "@/lib/operator-name";
 import { getActiveDeckId, setActiveDeckId } from "@/lib/active-deck";
+import { useAuth } from "@/contexts/auth-context";
+import { Link } from "wouter";
 
 type SpreadCard = TarotCard & { isFlipped: boolean };
 
@@ -30,6 +32,7 @@ const SPREAD_POSITIONS = [
 export default function Home() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { user } = useAuth();
   const [subject, setSubject] = useState("");
   const [operatorName, setOperatorNameState] = useState("");
   const [deckIndex, setDeckIndex] = useState(0);
@@ -77,7 +80,7 @@ export default function Home() {
 
   const { data: spreadHistory = [] } = useQuery<SpreadReading[]>({
     queryKey: ["/api/spread-readings"],
-    enabled: screen === "setup",
+    enabled: screen === "setup" && !!user,
   });
 
   const handleShuffle = () => {
@@ -207,6 +210,7 @@ export default function Home() {
         const response = await fetch("/api/tarot-reading", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
+          credentials: "include",
           body: JSON.stringify({
             operatorName: operatorName.trim() || undefined,
             subject: subject.trim() || undefined,
@@ -223,7 +227,9 @@ export default function Home() {
         }
         setAiSpreadReading(typeof data.reading === "string" ? data.reading : "");
         completedAiSpreadSigRef.current = sig;
-        queryClient.invalidateQueries({ queryKey: ["/api/spread-readings"] });
+        if (user) {
+          queryClient.invalidateQueries({ queryKey: ["/api/spread-readings"] });
+        }
       } catch (e) {
         if (ac.signal.aborted || (e instanceof DOMException && e.name === "AbortError")) return;
         setAiSpreadReadingError(e instanceof Error ? e.message : "Reading failed");
@@ -233,7 +239,7 @@ export default function Home() {
     })();
 
     return () => ac.abort();
-  }, [allSpreadCardsRevealed, screen, spreadCards, subject, operatorName, deckId, activeDeck?.name, queryClient]);
+  }, [allSpreadCardsRevealed, screen, spreadCards, subject, operatorName, deckId, activeDeck?.name, queryClient, user]);
 
   if (isLoading) {
     return (
@@ -429,7 +435,7 @@ export default function Home() {
         </span>
       </div>
 
-      {spreadHistory.length > 0 ? (
+      {user && spreadHistory.length > 0 ? (
         <section className="mt-16 w-full">
           <h3 className="font-label-caps mb-6 text-center text-sm tracking-widest text-white">
             TELEMETRY_ARCHIVE
@@ -465,6 +471,19 @@ export default function Home() {
               </li>
             ))}
           </ul>
+        </section>
+      ) : !user ? (
+        <section className="mt-16 w-full border border-white/10 border-l-2 border-l-red-600/40 bg-black/30 px-5 py-6 text-center">
+          <h3 className="font-label-caps mb-2 text-sm tracking-widest text-white">TELEMETRY_ARCHIVE</h3>
+          <p className="mb-4 font-mono-data text-xs text-white/55">
+            Sign in to save readings and unlock Monolith deck selection and Telemetry CMS.
+          </p>
+          <Link
+            href="/login?next=/"
+            className="inline-block border-2 border-red-600 px-4 py-2 font-label-caps text-[10px] tracking-widest text-red-600 hover:bg-red-600 hover:text-black"
+          >
+            REQUEST_ACCESS
+          </Link>
         </section>
       ) : null}
         </>

@@ -311,6 +311,7 @@ export class MemStorage implements IStorage {
       ...insertReading,
       id,
       timestamp: new Date(),
+      userId: insertReading.userId ?? null,
       operatorName: insertReading.operatorName ?? null,
       subject: insertReading.subject ?? null,
       deckId: insertReading.deckId ?? null,

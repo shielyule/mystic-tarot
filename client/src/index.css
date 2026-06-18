@@ -400,3 +400,14 @@
   font-feature-settings: "liga";
   -webkit-font-smoothing: antialiased;
 }
+
+.hal-audio-scanlines {
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(255, 85, 64, 0.06) 2px,
+    rgba(255, 85, 64, 0.06) 4px
+  );
+  pointer-events: none;
+}
